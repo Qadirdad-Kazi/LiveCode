@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "id": "1747436919306",
+    "title": "Untitled Snippet",
+    "description": "",
+    "html": "<h1>Hello, LiveCode!</h1>\n<p>Start coding here!</p>",
+    "css": "body {\n  font-family:  black;\n  margin: 0;\n  padding: 20px;\n}\n\nh1 {\n  color: #333;\n}",
+    "js": "console.log(\"Hello from LiveCode!\");",
+    "createdAt": "2025-05-16T23:08:39.309Z",
+    "updatedAt": "2025-05-16T23:08:39.310Z"
+  },
+  {
+    "id": "1747437461019",
+    "title": "Untitled Snippet",
+    "description": "",
+    "html": "<h1>Hello, LiveCode!</h1>\n<p>Start coding here!</p>",
+    "css": "body {\n  font-family: sans-serif;\n  margin: 0;\n  padding: 20px;\n}\n\nh1 {\n  color: #333;\n}",
+    "js": "console.log(\"Hello from LiveCode!\");",
+    "createdAt": "2025-05-16T23:17:41.020Z",
+    "updatedAt": "2025-05-16T23:17:41.020Z"
+  }
+]
