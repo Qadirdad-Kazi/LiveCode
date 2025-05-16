@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live JS Console</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            background: linear-gradient(120deg, #e0e7ff 0%, #f4f4f4 100%);
+            min-height: 100vh;
+        }
+        .header {
+            background: #232946;
+            color: #fff;
+            padding: 22px 32px;
+            font-size: 2em;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .container {
+            max-width: 700px;
+            margin: 48px auto 32px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(35,41,70,0.10);
+            padding: 36px 32px 32px 32px;
+        }
+        #editor { 
+            width: 100%; 
+            height: 140px; 
+            font-family: 'Fira Mono', 'Consolas', monospace; 
+            font-size: 16px; 
+            border-radius: 6px;
+            border: 1.5px solid #bfc8e6;
+            padding: 12px;
+            margin-bottom: 16px;
+            background: #f7f8fa;
+            resize: vertical;
+            transition: border 0.2s;
+        }
+        #editor:focus {
+            outline: none;
+            border: 1.5px solid #232946;
+            background: #eef0fa;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        #runBtn, #clearBtn { 
+            padding: 10px 28px; 
+            font-size: 16px; 
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #232946;
+            color: #fff;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(35,41,70,0.06);
+            transition: background 0.2s, transform 0.1s;
+        }
+        #clearBtn {
+            background: #bfc8e6;
+            color: #232946;
+        }
+        #runBtn:hover, #runBtn:focus { background: #3949ab; transform: translateY(-2px);}
+        #clearBtn:hover, #clearBtn:focus { background: #a3aed6; }
+        h3 { margin-top: 28px; color: #232946; }
+        #console { 
+            background: #181c20; 
+            color: #e0e7ff; 
+            padding: 18px; 
+            min-height: 120px; 
+            font-family: 'Fira Mono', 'Consolas', monospace; 
+            white-space: pre-wrap; 
+            border-radius: 6px; 
+            border: 1.5px solid #232946;
+            overflow-y: auto;
+            max-height: 260px;
+            margin-bottom: 0;
+            font-size: 15px;
+            box-shadow: 0 2px 8px rgba(35,41,70,0.06);
+        }
+        .console-error { color: #ff5555; }
+        .console-log { color: #7fffd4; }
+        .console-result { color: #f7c873; }
+        .footer {
+            text-align: center;
+            color: #888;
+            font-size: 1em;
+            padding: 18px 0 12px 0;
+            background: transparent;
+            letter-spacing: 0.5px;
+        }
+        @media (max-width: 800px) {
+            .container { padding: 18px 4vw; }
+            .header { font-size: 1.3em; padding: 16px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Live JavaScript Console</div>
+    <div class="container">
+        <label for="editor" style="font-weight:600; color:#232946; margin-bottom:6px; display:block;">JavaScript Code:</label>
+        <textarea id="editor" placeholder="Type your JavaScript code here...&#10;Example:&#10;console.log('Hello, world!');"></textarea>
+        <div class="btn-group">
+            <button id="runBtn" title="Run (Ctrl+Enter)">Run</button>
+            <button id="clearBtn" title="Clear console">Clear Console</button>
+        </div>
+        <h3>Console Output:</h3>
+        <div id="console" aria-live="polite"></div>
+    </div>
+    <div class="footer">
+        &copy; 2024 LiveCode JS Console &mdash; Powered by HTML, CSS, and JavaScript
+    </div>
+    <script>
+        const editor = document.getElementById('editor');
+        const runBtn = document.getElementById('runBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const consoleDiv = document.getElementById('console');
+
+        function printToConsole(msg, type = 'log') {
+            const span = document.createElement('span');
+            span.textContent = msg + '\n';
+            if (type === 'error') span.className = 'console-error';
+            else if (type === 'result') span.className = 'console-result';
+            else span.className = 'console-log';
+            consoleDiv.appendChild(span);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        runBtn.onclick = () => {
+            consoleDiv.textContent = '';
+            try {
+                // Capture console.log
+                const originalLog = console.log;
+                console.log = (...args) => {
+                    printToConsole(args.join(' '), 'log');
+                    originalLog.apply(console, args);
+                };
+                // Run user code
+                const result = eval(editor.value);
+                if (result !== undefined) printToConsole(result, 'result');
+                console.log = originalLog;
+            } catch (e) {
+                printToConsole(e, 'error');
+            }
+        };
+
+        clearBtn.onclick = () => {
+            consoleDiv.textContent = '';
+        };
+
+        // Run code with Ctrl+Enter
+        editor.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                runBtn.click();
+                e.preventDefault();
+            }
+        });
+
+        // Example code in editor on first load
+        if (!localStorage.getItem('js_console_visited')) {
+            editor.value = "console.log('Hello, world!');\n// Try writing your own JS code!";
+            localStorage.setItem('js_console_visited', '1');
+        }
+    </script>
+</body>
+</html>
