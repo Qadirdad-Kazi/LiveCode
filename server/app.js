@@ -42,7 +42,13 @@ const saveData = () => {
   }
 };
 
-app.use(cors());
+// Configure CORS to allow requests from any origin
+app.use(cors({
+  origin: '*', // In production, you might want to restrict this to specific domains
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Snippets endpoints
@@ -117,6 +123,11 @@ app.delete('/snippets/:id', (req, res) => {
   saveData();
   
   res.status(204).send();
+});
+
+// Root route handler
+app.get('/', (req, res) => {
+  res.json({ message: 'LiveCode API is running', version: '1.0.0' });
 });
 
 // Test endpoint for connectivity
