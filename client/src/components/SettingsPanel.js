@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
 
-export function SettingsPanel({ settings, onSettingsChange, onClose }) {
+export function SettingsPanel({ settings, onSave, onClose, keyboardShortcuts = [] }) {
   const [activeTab, setActiveTab] = useState('appearance');
+  const tabs = [
+    { id: 'appearance', label: 'Appearance', icon: 'fa-palette' },
+    { id: 'editor', label: 'Editor', icon: 'fa-code' },
+    { id: 'shortcuts', label: 'Shortcuts', icon: 'fa-keyboard' }
+  ];
   const [localSettings, setLocalSettings] = useState({ ...settings });
   
   // Apply settings only when closing or saving
   const handleSave = () => {
-    onSettingsChange(localSettings);
-    onClose();
+    onSave(localSettings);
   };
   
   const handleChange = (key, value) => {
@@ -76,28 +80,20 @@ export function SettingsPanel({ settings, onSettingsChange, onClose }) {
           
           {/* Tabs */}
           <div className="flex mt-4 border-b border-gray-200 dark:border-gray-600">
-            <button
-              className={`
-                px-4 py-2 font-medium text-sm
-                ${activeTab === 'appearance' 
-                  ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400' 
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}
-              `}
-              onClick={() => setActiveTab('appearance')}
-            >
-              <i className="fa fa-paint-brush mr-1"></i> Appearance
-            </button>
-            <button
-              className={`
-                px-4 py-2 font-medium text-sm
-                ${activeTab === 'editor' 
-                  ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400' 
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}
-              `}
-              onClick={() => setActiveTab('editor')}
-            >
-              <i className="fa fa-keyboard-o mr-1"></i> Editor
-            </button>
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                className={`
+                  px-4 py-2 font-medium text-sm
+                  ${activeTab === tab.id 
+                    ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400' 
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}
+                `}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <i className={`fa ${tab.icon} mr-1`}></i> {tab.label}
+              </button>
+            ))}
           </div>
         </div>
         

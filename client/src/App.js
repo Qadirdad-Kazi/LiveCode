@@ -49,29 +49,32 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+  
+  // Version history state
+  const [versionHistory, setVersionHistory] = useState(() => {
+    const savedHistory = localStorage.getItem('versionHistory');
+    return savedHistory ? JSON.parse(savedHistory) : [];
+  });
+  const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
   const [consoleLogs, setConsoleLogs] = useState([]);
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
   const [pingResult, setPingResult] = useState('');
-
-  // Version history
-  const [versions, setVersions] = useState([]);
-  const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
 
   // Refs
   const iframeRef = useRef(null);
 
   // Create sanitized source document for preview
-  const createSrcDoc = () => {
+  const createSrcDoc = (htmlContent, cssContent, jsContent) => {
     return `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <style>${DOMPurify.sanitize(css)}</style>
+          <style>${DOMPurify.sanitize(cssContent)}</style>
         </head>
         <body>
-          ${DOMPurify.sanitize(html)}
+          ${DOMPurify.sanitize(htmlContent)}
           <script>
             // Console log capture
             const originalConsole = console;
@@ -107,7 +110,7 @@ export default function App() {
             
             // User JS code
             try {
-              ${DOMPurify.sanitize(js)}
+              ${DOMPurify.sanitize(jsContent)}
             } catch (error) {
               console.error(error.message);
             }
@@ -117,8 +120,6 @@ export default function App() {
     `;
   };
   
-  const srcDoc = createSrcDoc();
-
   // Handle editor content changes
   const getValue = () => {
     if (activeTab === 'html') return html;
@@ -126,15 +127,46 @@ export default function App() {
     return js;
   };
 
-  const setValue = (value) => {
-    // Save current state to version history before updating
-    if (value !== getValue()) {
-      addToVersionHistory();
+  // Debounce timers for auto-save and preview update
+  const autoSaveTimerRef = useRef(null);
+  const previewUpdateTimerRef = useRef(null);
+  const [debouncedHtml, setDebouncedHtml] = useState(html);
+  const [debouncedCss, setDebouncedCss] = useState(css);
+  const [debouncedJs, setDebouncedJs] = useState(js);
+  
+  // Update preview content with debounce
+  useEffect(() => {
+    if (previewUpdateTimerRef.current) {
+      clearTimeout(previewUpdateTimerRef.current);
     }
-
+    
+    previewUpdateTimerRef.current = setTimeout(() => {
+      setDebouncedHtml(html);
+      setDebouncedCss(css);
+      setDebouncedJs(js);
+    }, 1000); // 1 second delay for preview update
+    
+    return () => {
+      if (previewUpdateTimerRef.current) {
+        clearTimeout(previewUpdateTimerRef.current);
+      }
+    };
+  }, [html, css, js]);
+  
+  const setValue = (value) => {
     if (activeTab === 'html') setHtml(value || '');
     else if (activeTab === 'css') setCss(value || '');
     else setJs(value || '');
+    
+    // Clear previous timer if it exists
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    
+    // Set a new timer for auto-save (3 seconds delay)
+    autoSaveTimerRef.current = setTimeout(() => {
+      addToVersionHistory();
+    }, 3000);
   };
 
   // Version history management
@@ -143,16 +175,20 @@ export default function App() {
     const newVersion = { html, css, js, timestamp: new Date().toISOString() };
 
     // Remove any future versions if we're not at the latest version
-    const updatedVersions = versions.slice(0, currentVersionIndex + 1);
+    const updatedVersions = versionHistory.slice(0, currentVersionIndex + 1);
 
     // Add the new version and update the current index
-    setVersions([...updatedVersions, newVersion]);
+    const newHistory = [...updatedVersions, newVersion];
+    setVersionHistory(newHistory);
     setCurrentVersionIndex(updatedVersions.length);
+    
+    // Save to localStorage
+    localStorage.setItem('versionHistory', JSON.stringify(newHistory));
   };
 
   const loadVersion = (index) => {
-    if (index >= 0 && index < versions.length) {
-      const version = versions[index];
+    if (index >= 0 && index < versionHistory.length) {
+      const version = versionHistory[index];
       setHtml(version.html);
       setCss(version.css);
       setJs(version.js);
@@ -378,17 +414,68 @@ ${html}
   }
 };
 
-// Set initial dark mode class
-useEffect(() => {
-  if (isDarkMode) {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
-}, [isDarkMode]);
+  // Set initial dark mode class
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+  
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl/Cmd + S: Save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveSnippet();
+      }
+      
+      // Ctrl/Cmd + Enter: Run code (refresh preview)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        // Force refresh the preview by recreating the srcDoc
+        const iframe = iframeRef.current;
+        if (iframe) {
+          iframe.srcdoc = createSrcDoc();
+        }
+      }
+      
+      // Ctrl/Cmd + 1/2/3: Switch tabs
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === '1') {
+          e.preventDefault();
+          setActiveTab('html');
+        } else if (e.key === '2') {
+          e.preventDefault();
+          setActiveTab('css');
+        } else if (e.key === '3') {
+          e.preventDefault();
+          setActiveTab('javascript');
+        }
+      }
+      
+      // Ctrl/Cmd + B: Toggle console
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        setIsConsoleOpen(!isConsoleOpen);
+      }
+      
+      // Ctrl/Cmd + D: Toggle dark mode
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        toggleDarkMode();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isConsoleOpen, saveSnippet, setActiveTab, setIsConsoleOpen, toggleDarkMode]); // Add other dependencies as needed
 
 return (
   <div className={`app-container ${isDarkMode ? 'dark' : ''}`}>
+    {/* Top Navigation Bar */}
     <Navbar 
       isDarkMode={isDarkMode} 
       toggleTheme={toggleDarkMode}
@@ -400,9 +487,8 @@ return (
       onToggleDarkMode={toggleDarkMode}
     />
 
-    {/* Main Content */}
+    {/* Main Content - Split Horizontally */}
     <div className="main-content">
-      {/* Mobile Tab Selector */}
       {isMobileView ? (
         <div className="editor-container">
           {/* Editor Tabs */}
@@ -489,66 +575,221 @@ return (
           </Split>
         </div>
       ) : (
-        /* Mobile View */
-        <div className="mobile-container">
-          {/* Editor */}
-          <div className="mobile-editor">
-            <EditorPane 
-              language={activeTab} 
-              value={getValue()} 
-              onChange={setValue}
-              theme={editorSettings.theme}
-              options={{
-                fontSize: editorSettings.fontSize,
-                tabSize: editorSettings.tabSize,
-                wordWrap: editorSettings.wordWrap,
-                minimap: { enabled: false },
-                lineNumbers: editorSettings.lineNumbers ? 'on' : 'off',
-              }}
-            />
-          </div>
-
-          {/* Preview */}
-          <div className="h-1/2 flex flex-col">
-            <div className="bg-gray-800 text-white py-2 px-4 flex justify-between items-center">
-              <span>Preview</span>
-              <button 
-                onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-                className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded"
-              >
-                <i className={`fa fa-terminal ${isConsoleOpen ? 'text-green-400' : ''}`}></i>
-              </button>
+        /* Desktop View */
+        <Split
+          className="split-layout"
+          sizes={[40, 60]}
+          minSize={200}
+          gutterSize={10}
+          gutterAlign="center"
+          snapOffset={30}
+          dragInterval={1}
+          direction="horizontal"
+        >
+          {/* Left Side - Code Editors with Tabs */}
+          <div className="code-section">
+            <div className="editor-tabs">
+              {editorTabs.map(tab => (
+                <button
+                  key={tab.lang}
+                  className={`editor-tab ${activeTab === tab.lang ? 'editor-tab-active' : ''}`}
+                  onClick={() => setActiveTab(tab.lang)}
+                >
+                  <i className={`fab fa-${tab.icon} tab-icon`}></i>
+                  {tab.label}
+                  <div className="tab-actions">
+                    <button 
+                      className="tab-action-btn" 
+                      title="Format code"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        formatCode(tab.lang);
+                      }}
+                    >
+                      <i className="fas fa-magic"></i>
+                    </button>
+                  </div>
+                </button>
+              ))}
             </div>
-
-            <div className="flex-grow relative">
-              <Preview srcDoc={srcDoc} ref={iframeRef} />
-
+            
+            <div className="editor-content">
+              {activeTab === 'html' && (
+                <EditorPane
+                  language="html"
+                  value={html}
+                  onChange={setHtml}
+                  theme={editorSettings.theme}
+                  options={{
+                    fontSize: editorSettings.fontSize,
+                    tabSize: editorSettings.tabSize,
+                    wordWrap: editorSettings.wordWrap,
+                    minimap: { enabled: false },
+                    lineNumbers: editorSettings.lineNumbers ? 'on' : 'off',
+                  }}
+                />
+              )}
+              {activeTab === 'css' && (
+                <EditorPane
+                  language="css"
+                  value={css}
+                  onChange={setCss}
+                  theme={editorSettings.theme}
+                  options={{
+                    fontSize: editorSettings.fontSize,
+                    tabSize: editorSettings.tabSize,
+                    wordWrap: editorSettings.wordWrap,
+                    minimap: { enabled: false },
+                    lineNumbers: editorSettings.lineNumbers ? 'on' : 'off',
+                  }}
+                />
+              )}
+              {activeTab === 'javascript' && (
+                <EditorPane
+                  language="javascript"
+                  value={js}
+                  onChange={setJs}
+                  theme={editorSettings.theme}
+                  options={{
+                    fontSize: editorSettings.fontSize,
+                    tabSize: editorSettings.tabSize,
+                    wordWrap: editorSettings.wordWrap,
+                    minimap: { enabled: false },
+                    lineNumbers: editorSettings.lineNumbers ? 'on' : 'off',
+                  }}
+                />
+              )}
+            </div>
+          </div>
+          
+          {/* Right Side - Preview and Console */}
+          <div className="preview-section">
+            <Split
+              className="preview-console-split"
+              sizes={isConsoleOpen ? [70, 30] : [100, 0]}
+              minSize={isConsoleOpen ? 100 : 0}
+              gutterSize={isConsoleOpen ? 8 : 0}
+              snapOffset={30}
+              direction="vertical"
+            >
+              {/* Preview Area */}
+              <div className="preview-container">
+                <div className="preview-header">
+                  <span>Preview</span>
+                  <button 
+                    onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                    className="console-toggle-btn"
+                    title={isConsoleOpen ? "Hide Console" : "Show Console"}
+                  >
+                    <i className={`fa fa-terminal ${isConsoleOpen ? 'console-active' : ''}`}></i>
+                  </button>
+                </div>
+                <div className="preview-content">
+                  <Preview srcDoc={createSrcDoc(debouncedHtml, debouncedCss, debouncedJs)} ref={iframeRef} />
+                </div>
+              </div>
+              
+              {/* Console Area */}
               {isConsoleOpen && (
-                <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gray-900 text-green-400 font-mono text-sm p-2 overflow-auto">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs">Console</span>
+                <div className="console-section">
+                  <div className="console-header">
+                    <span>Console</span>
                     <button 
                       onClick={clearConsole}
-                      className="text-xs px-1 py-0.5 bg-gray-800 hover:bg-gray-700 rounded"
+                      className="console-clear-btn"
                     >
                       Clear
                     </button>
                   </div>
-                  <ConsoleOutput logs={consoleLogs} />
+                  <div className="console-content">
+                    <ConsoleOutput logs={consoleLogs} />
+                  </div>
                 </div>
               )}
-            </div>
+            </Split>
           </div>
-        </div>
+        </Split>
       )}
     </div>
+
+    {/* Footer with Version History */}
+    <footer className="app-footer">
+      {/* Version History Timeline */}
+      <div className="version-history-container">
+        <div className="version-history-header">
+          <h3>Version History</h3>
+          {versionHistory.length > 0 && (
+            <button 
+              className="clear-history-btn"
+              onClick={() => {
+                if (confirm('Clear all version history? This cannot be undone.')) {
+                  localStorage.removeItem('versionHistory');
+                  setVersionHistory([]);
+                }
+              }}
+            >
+              Clear History
+            </button>
+          )}
+        </div>
+        <div className="version-history-timeline">
+          {versionHistory.length > 0 ? (
+            versionHistory.map((version, index) => (
+              <div 
+                key={index} 
+                className={`version-item ${currentVersionIndex === index ? 'active-version' : ''}`}
+                onClick={() => loadVersion(index)}
+                title={`Version ${index + 1} - ${new Date(version.timestamp).toLocaleString()}`}
+              >
+                <div className="version-dot"></div>
+                <div className="version-info">
+                  <span className="version-number">V{index + 1}</span>
+                  <span className="version-time">{new Date(version.timestamp).toLocaleTimeString()}</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="empty-history">No version history yet. Make changes to create versions.</div>
+          )}
+        </div>
+      </div>
+      
+      {/* Footer Info */}
+      <div className="footer-content">
+        <div className="footer-logo">
+          <i className="fas fa-code"></i> LiveCode
+        </div>
+        <div className="footer-links">
+          <a href="https://github.com/Qadirdad-Kazi/LiveCode" target="_blank" rel="noopener noreferrer">
+            <i className="fab fa-github"></i> GitHub
+          </a>
+          <span className="footer-divider">|</span>
+          <button onClick={() => setIsSettingsOpen(true)}>
+            <i className="fas fa-cog"></i> Settings
+          </button>
+          <span className="footer-divider">|</span>
+          <span className="version">v1.0.0</span>
+        </div>
+      </div>
+    </footer>
 
     {/* Settings Panel */}
     {isSettingsOpen && (
       <SettingsPanel 
         settings={editorSettings}
-        onSettingsChange={setEditorSettings}
         onClose={() => setIsSettingsOpen(false)}
+        onSave={(newSettings) => {
+          setEditorSettings(newSettings);
+          localStorage.setItem('editorSettings', JSON.stringify(newSettings));
+          setIsSettingsOpen(false);
+        }}
+        keyboardShortcuts={[
+          { key: 'Ctrl/Cmd + S', description: 'Save snippet' },
+          { key: 'Ctrl/Cmd + Enter', description: 'Run code / Refresh preview' },
+          { key: 'Ctrl/Cmd + 1/2/3', description: 'Switch to HTML/CSS/JS tabs' },
+          { key: 'Ctrl/Cmd + B', description: 'Toggle console' },
+          { key: 'Ctrl/Cmd + D', description: 'Toggle dark mode' }
+        ]}
       />
     )}
 
@@ -562,19 +803,23 @@ return (
     )}
 
     {/* Version History Panel (conditionally rendered) */}
-    {versions.length > 0 && (
+    {versionHistory.length > 0 && (
       <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 w-64 z-50">
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-bold">Version History</h3>
           <button 
-            onClick={() => setVersions([])} 
+            onClick={() => {
+              setVersionHistory([]);
+              localStorage.removeItem('versionHistory');
+              setCurrentVersionIndex(-1);
+            }} 
             className="text-red-500 hover:text-red-700"
           >
             <i className="fa fa-times"></i>
           </button>
         </div>
         <div className="max-h-40 overflow-y-auto">
-          {versions.map((version, index) => (
+          {versionHistory.map((version, index) => (
             <button
               key={index}
               onClick={() => loadVersion(index)}
