@@ -25,8 +25,19 @@ const editorTabs = [
 export default function App() {
   // Theme state
   const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Check for saved theme first, then system preference
     const savedTheme = localStorage.getItem('livecode-theme');
-    return savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialMode = savedTheme ? savedTheme === 'dark' : prefersDark;
+    
+    // Apply theme class immediately to prevent flash of light theme
+    if (initialMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    return initialMode;
   });
   // Editor content state
   const [activeTab, setActiveTab] = useState('html');
@@ -490,76 +501,85 @@ return (
     {/* Main Content - Split Horizontally */}
     <div className="main-content">
       {isMobileView ? (
-        <div className="editor-container">
-          {/* Editor Tabs */}
-          <div className="editor-tabs">
-            {editorTabs.map(tab => (
-              <button
-                key={tab.lang}
-                className={`editor-tab ${activeTab === tab.lang ? 'editor-tab-active' : ''}`}
-                onClick={() => setActiveTab(tab.lang)}
+        <div className="mobile-layout">
+          {/* Editor Section */}
+          <div className="mobile-editor-container">
+            {/* Editor Tabs */}
+            <div className="editor-tabs" style={{ flexShrink: 0 }}>
+              {editorTabs.map(tab => (
+                <button
+                  key={tab.lang}
+                  className={`editor-tab ${activeTab === tab.lang ? 'editor-tab-active' : ''}`}
+                  onClick={() => setActiveTab(tab.lang)}
+                >
+                  <i className={`fab fa-${tab.icon} tab-icon`}></i>
+                  {tab.label}
+                  <div className="tab-actions">
+                    <button 
+                      className="tab-action-btn" 
+                      title="Format code"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        formatCode(tab.lang);
+                      }}
+                    >
+                      <i className="fas fa-magic"></i>
+                    </button>
+                  </div>
+                </button>
+              ))}
+            </div>
+            
+            {/* Editor Content */}
+            <div className="editor-content">
+              {activeTab === 'html' && (
+                <EditorPane
+                  language="html"
+                  value={html}
+                  onChange={setHtml}
+                  theme={editorSettings.theme}
+                  options={editorSettings}
+                />
+              )}
+              {activeTab === 'css' && (
+                <EditorPane
+                  language="css"
+                  value={css}
+                  onChange={setCss}
+                  theme={editorSettings.theme}
+                  options={editorSettings}
+                />
+              )}
+              {activeTab === 'javascript' && (
+                <EditorPane
+                  language="javascript"
+                  value={js}
+                  onChange={setJs}
+                  theme={editorSettings.theme}
+                  options={editorSettings}
+                />
+              )}
+            </div>
+          </div>
+          
+          {/* Preview Section */}
+          <div className="mobile-preview-container">
+            <div className="preview-header">
+              <span>Preview</span>
+              <button 
+                onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                className="console-toggle-btn"
               >
-                <i className={`fab fa-${tab.icon} tab-icon`}></i>
-                {tab.label}
-                <div className="tab-actions">
-                  <button 
-                    className="tab-action-btn" 
-                    title="Format code"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      formatCode(tab.lang);
-                    }}
-                  >
-                    <i className="fas fa-magic"></i>
-                  </button>
-                </div>
+                {isConsoleOpen ? 'Hide Console' : 'Show Console'}
               </button>
-            ))}
-          </div>
-          
-          {/* Editor Content */}
-          <div className="editor-content">
-            {activeTab === 'html' && (
-              <EditorPane
-                language="html"
-                value={html}
-                onChange={setHtml}
-                theme={editorSettings.theme}
-                options={editorSettings}
-              />
-            )}
-            {activeTab === 'css' && (
-              <EditorPane
-                language="css"
-                value={css}
-                onChange={setCss}
-                theme={editorSettings.theme}
-                options={editorSettings}
-              />
-            )}
-            {activeTab === 'javascript' && (
-              <EditorPane
-                language="javascript"
-                value={js}
-                onChange={setJs}
-                theme={editorSettings.theme}
-                options={editorSettings}
-              />
-            )}
-          </div>
-          
-          {/* Preview with Resizable Console */}
-          <Split
-            className="preview-console-container"
-            direction="vertical"
-            sizes={isConsoleOpen ? [70, 30] : [100, 0]}
-            minSize={isConsoleOpen ? 100 : 0}
-            gutterSize={isConsoleOpen ? 8 : 0}
-          >
-            <Preview srcDoc={srcDoc} ref={iframeRef} />
-
+            </div>
+            
+            <div className="preview-content">
+              <Preview srcDoc={createSrcDoc(html, css, js)} ref={iframeRef} />
+            </div>
+            
             {isConsoleOpen && (
-              <div className="console-container">
+              <div className="mobile-console-container">
                 <div className="console-header">
                   <span>Console</span>
                   <button 
@@ -572,7 +592,7 @@ return (
                 <ConsoleOutput logs={consoleLogs} />
               </div>
             )}
-          </Split>
+          </div>
         </div>
       ) : (
         /* Desktop View */
