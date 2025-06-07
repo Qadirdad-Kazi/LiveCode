@@ -2,7 +2,9 @@
 
 A modern, responsive web application for coding and prototyping web projects in real-time. Inspired by tools like CodePen and JSFiddle, LiveCode provides a seamless environment for writing, testing, and sharing web code.
 
-![LiveCode Screenshot](https://via.placeholder.com/800x450.png?text=LiveCode+Editor)
+![LiveCode Screenshot](https://res.cloudinary.com/dzekrrkep/image/upload/v1747439601/projects/cpsutfmcfttxs3sefkwu.png)
+
+
 
 ## ✨ Features
 
