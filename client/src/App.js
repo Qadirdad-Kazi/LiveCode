@@ -28,6 +28,7 @@ const editorTabs = [
   { label: 'HTML', lang: 'html', icon: 'html5' },
   { label: 'CSS', lang: 'css', icon: 'css3' },
   { label: 'JS', lang: 'javascript', icon: 'js' },
+  { label: 'Java', lang: 'java', icon: 'java' },
 ];
 
 export default function App() {
@@ -52,6 +53,11 @@ export default function App() {
   const [html, setHtml] = useState('<h1>Hello, LiveCode!</h1>\n<p>Start coding here!</p>');
   const [css, setCss] = useState('body {\n  font-family: sans-serif;\n  margin: 0;\n  padding: 20px;\n}\n\nh1 {\n  color: #333;\n}');
   const [js, setJs] = useState('console.log("Hello from LiveCode!");');
+  const [java, setJava] = useState(`public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, LiveCode!");
+    }
+}`);
 
   // Editor settings
   const [editorSettings, setEditorSettings] = useState({
@@ -166,6 +172,7 @@ export default function App() {
   const getValue = () => {
     if (activeTab === 'html') return html;
     if (activeTab === 'css') return css;
+    if (activeTab === 'java') return java;
     return js;
   };
 
@@ -198,6 +205,7 @@ export default function App() {
   const setValue = (value) => {
     if (activeTab === 'html') setHtml(value || '');
     else if (activeTab === 'css') setCss(value || '');
+    else if (activeTab === 'java') setJava(value || '');
     else setJs(value || '');
     
     // Clear previous timer if it exists
@@ -214,7 +222,7 @@ export default function App() {
   // Version history management
   const addToVersionHistory = () => {
     // Only add to history if there are changes
-    const newVersion = { html, css, js, timestamp: new Date().toISOString() };
+    const newVersion = { html, css, js, java, timestamp: new Date().toISOString() };
 
     // Remove any future versions if we're not at the latest version
     const updatedVersions = versionHistory.slice(0, currentVersionIndex + 1);
@@ -231,9 +239,10 @@ export default function App() {
   const loadVersion = (index) => {
     if (index >= 0 && index < versionHistory.length) {
       const version = versionHistory[index];
-      setHtml(version.html);
-      setCss(version.css);
-      setJs(version.js);
+      setHtml(version.html || '');
+      setCss(version.css || '');
+      setJs(version.js || '');
+      setJava(version.java || '');
       setCurrentVersionIndex(index);
     }
   };
@@ -272,6 +281,13 @@ export default function App() {
       } else if (activeTab === 'css') {
         formattedCode = format(css, { parser: 'css' });
         setCss(formattedCode);
+      } else if (activeTab === 'java') {
+        // Java doesn't have a Prettier parser, show message
+        setConsoleLogs(prev => [...prev, { 
+          type: 'info', 
+          data: ['Java formatting is not available. Use your IDE for Java formatting.'] 
+        }]);
+        return;
       } else {
         formattedCode = format(js, { parser: 'babel' });
         setJs(formattedCode);
@@ -428,6 +444,7 @@ ${html}
           html,
           css,
           js,
+          java,
           title: prompt('Enter a title for your snippet:', 'My LiveCode Snippet'),
           description: prompt('Enter a description (optional):', ''),
         }),
@@ -465,6 +482,7 @@ ${html}
         setHtml(data.html || '');
         setCss(data.css || '');
         setJs(data.js || '');
+        setJava(data.java || '');
         
         setPingResult(`Snippet loaded: ${data.title}`);
         setTimeout(() => setPingResult(''), 3000);
@@ -512,10 +530,17 @@ ${html}
   
   // Create new snippet
   const createNewSnippet = () => {
+    const defaultJava = `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, LiveCode!");
+    }
+}`;
+    
     // Confirm with user if there are changes
     if (html !== '<h1>Hello, LiveCode!</h1>\n<p>Start coding here!</p>' || 
         css !== 'body {\n  font-family: sans-serif;\n  margin: 0;\n  padding: 20px;\n}\n\nh1 {\n  color: #333;\n}' || 
-        js !== 'console.log("Hello from LiveCode!");') {
+        js !== 'console.log("Hello from LiveCode!");' ||
+        java !== defaultJava) {
       if (!confirm('Create a new snippet? Your current changes will be saved to version history.')) {
         return;
       }
@@ -528,6 +553,7 @@ ${html}
     setHtml('<h1>Hello, LiveCode!</h1>\n<p>Start coding here!</p>');
     setCss('body {\n  font-family: sans-serif;\n  margin: 0;\n  padding: 20px;\n}\n\nh1 {\n  color: #333;\n}');
     setJs('console.log("Hello from LiveCode!");');
+    setJava(defaultJava);
     
     // Clear console logs
     setConsoleLogs([]);
@@ -591,7 +617,7 @@ ${html}
         }
       }
       
-      // Ctrl/Cmd + 1/2/3: Switch tabs
+      // Ctrl/Cmd + 1/2/3/4: Switch tabs
       if (e.ctrlKey || e.metaKey) {
         if (e.key === '1') {
           e.preventDefault();
@@ -602,6 +628,9 @@ ${html}
         } else if (e.key === '3') {
           e.preventDefault();
           setActiveTab('javascript');
+        } else if (e.key === '4') {
+          e.preventDefault();
+          setActiveTab('java');
         }
       }
       
@@ -700,6 +729,15 @@ return (
                   language="javascript"
                   value={js}
                   onChange={setJs}
+                  theme={editorSettings.theme}
+                  options={editorSettings}
+                />
+              )}
+              {activeTab === 'java' && (
+                <EditorPane
+                  language="java"
+                  value={java}
+                  onChange={setJava}
                   theme={editorSettings.theme}
                   options={editorSettings}
                 />
@@ -818,6 +856,23 @@ return (
                   language="javascript"
                   value={js}
                   onChange={setJs}
+                  theme={editorSettings.theme}
+                  options={{
+                    fontSize: editorSettings.fontSize,
+                    tabSize: editorSettings.tabSize,
+                    wordWrap: editorSettings.wordWrap,
+                    minimap: { enabled: false },
+                    lineNumbers: editorSettings.lineNumbers ? 'on' : 'off',
+                    enableLinting: editorSettings.enableLinting,
+                  }}
+                  onLintErrors={handleLintErrors}
+                />
+              )}
+              {activeTab === 'java' && (
+                <EditorPane
+                  language="java"
+                  value={java}
+                  onChange={setJava}
                   theme={editorSettings.theme}
                   options={{
                     fontSize: editorSettings.fontSize,
@@ -968,7 +1023,7 @@ return (
         keyboardShortcuts={[
           { key: 'Ctrl/Cmd + S', description: 'Save snippet' },
           { key: 'Ctrl/Cmd + Enter', description: 'Run code / Refresh preview' },
-          { key: 'Ctrl/Cmd + 1/2/3', description: 'Switch to HTML/CSS/JS tabs' },
+          { key: 'Ctrl/Cmd + 1/2/3/4', description: 'Switch to HTML/CSS/JS/Java tabs' },
           { key: 'Ctrl/Cmd + B', description: 'Toggle console' },
           { key: 'Ctrl/Cmd + D', description: 'Toggle dark mode' }
         ]}

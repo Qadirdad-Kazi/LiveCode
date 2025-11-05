@@ -84,6 +84,74 @@ export async function lintCSS(code) {
   return errors;
 }
 
+// Basic Java linting
+export async function lintJava(code) {
+  const errors = [];
+  const lines = code.split('\n');
+  
+  lines.forEach((line, index) => {
+    const lineNum = index + 1;
+    
+    // Check for missing semicolons
+    const trimmedLine = line.trim();
+    if (trimmedLine && 
+        !trimmedLine.endsWith(';') && 
+        !trimmedLine.endsWith('{') && 
+        !trimmedLine.endsWith('}') &&
+        !trimmedLine.startsWith('//') &&
+        !trimmedLine.startsWith('/*') &&
+        !trimmedLine.startsWith('*') &&
+        !trimmedLine.includes('if') && 
+        !trimmedLine.includes('for') && 
+        !trimmedLine.includes('while') &&
+        !trimmedLine.includes('class') &&
+        !trimmedLine.includes('public') &&
+        !trimmedLine.includes('private') &&
+        !trimmedLine.includes('import')) {
+      errors.push({
+        severity: 'warning',
+        message: 'Missing semicolon',
+        line: lineNum,
+        column: line.length
+      });
+    }
+    
+    // Check for common typos
+    if (line.includes('pulic')) {
+      errors.push({
+        severity: 'error',
+        message: "Typo: 'pulic' should be 'public'",
+        line: lineNum,
+        column: line.indexOf('pulic')
+      });
+    }
+    
+    // Check for unclosed brackets
+    const openBraces = (line.match(/\{/g) || []).length;
+    const closeBraces = (line.match(/\}/g) || []).length;
+    if (Math.abs(openBraces - closeBraces) > 0) {
+      errors.push({
+        severity: 'warning',
+        message: 'Possible unclosed brace',
+        line: lineNum,
+        column: 1
+      });
+    }
+  });
+  
+  // Check for main method
+  if (!code.includes('public static void main')) {
+    errors.push({
+      severity: 'info',
+      message: 'No main method found. Add a main method to run the program.',
+      line: 1,
+      column: 1
+    });
+  }
+  
+  return errors;
+}
+
 // Lint HTML (basic validation)
 export function lintHTML(code) {
   const errors = [];

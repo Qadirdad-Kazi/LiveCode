@@ -140,6 +140,126 @@ const value = localStorage.getItem('key');
 localStorage.removeItem('key');`,
       category: 'Storage'
     }
+  ],
+  java: [
+    {
+      id: 'java-main',
+      name: 'Main Method',
+      code: `public class Main {
+    public static void main(String[] args) {
+        // Your code here
+    }
+}`,
+      category: 'Basics'
+    },
+    {
+      id: 'java-hello',
+      name: 'Hello World',
+      code: `public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}`,
+      category: 'Basics'
+    },
+    {
+      id: 'java-variables',
+      name: 'Variables',
+      code: `int age = 25;
+String name = "John";
+double price = 99.99;
+boolean isActive = true;`,
+      category: 'Basics'
+    },
+    {
+      id: 'java-array',
+      name: 'Array',
+      code: `int[] numbers = {1, 2, 3, 4, 5};
+String[] names = new String[10];
+for (int i = 0; i < numbers.length; i++) {
+    System.out.println(numbers[i]);
+}`,
+      category: 'Data Structures'
+    },
+    {
+      id: 'java-list',
+      name: 'ArrayList',
+      code: `import java.util.ArrayList;
+
+ArrayList<String> list = new ArrayList<>();
+list.add("Item 1");
+list.add("Item 2");
+for (String item : list) {
+    System.out.println(item);
+}`,
+      category: 'Data Structures'
+    },
+    {
+      id: 'java-class',
+      name: 'Class Definition',
+      code: `public class Person {
+    private String name;
+    private int age;
+    
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+}`,
+      category: 'OOP'
+    },
+    {
+      id: 'java-if',
+      name: 'If-Else',
+      code: `if (condition) {
+    // Code block
+} else if (anotherCondition) {
+    // Code block
+} else {
+    // Code block
+}`,
+      category: 'Control Flow'
+    },
+    {
+      id: 'java-for',
+      name: 'For Loop',
+      code: `for (int i = 0; i < 10; i++) {
+    System.out.println(i);
+}`,
+      category: 'Control Flow'
+    },
+    {
+      id: 'java-while',
+      name: 'While Loop',
+      code: `while (condition) {
+    // Code block
+    // Update condition
+}`,
+      category: 'Control Flow'
+    },
+    {
+      id: 'java-switch',
+      name: 'Switch Statement',
+      code: `switch (value) {
+    case 1:
+        // Code
+        break;
+    case 2:
+        // Code
+        break;
+    default:
+        // Code
+}`,
+      category: 'Control Flow'
+    }
   ]
 };
 

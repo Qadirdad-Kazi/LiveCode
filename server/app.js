@@ -66,10 +66,10 @@ app.get('/snippets/:id', (req, res) => {
 });
 
 app.post('/snippets', (req, res) => {
-  const { html, css, js, title, description } = req.body;
+  const { html, css, js, java, title, description } = req.body;
   
-  if (!html && !css && !js) {
-    return res.status(400).json({ message: 'At least one of html, css, or js is required' });
+  if (!html && !css && !js && !java) {
+    return res.status(400).json({ message: 'At least one of html, css, js, or java is required' });
   }
   
   const newSnippet = {
@@ -79,6 +79,7 @@ app.post('/snippets', (req, res) => {
     html: html || '',
     css: css || '',
     js: js || '',
+    java: java || '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -90,7 +91,7 @@ app.post('/snippets', (req, res) => {
 });
 
 app.put('/snippets/:id', (req, res) => {
-  const { html, css, js, title, description } = req.body;
+  const { html, css, js, java, title, description } = req.body;
   const index = snippetsData.findIndex(s => s.id === req.params.id);
   
   if (index === -1) {
@@ -104,6 +105,7 @@ app.put('/snippets/:id', (req, res) => {
     html: html !== undefined ? html : snippetsData[index].html,
     css: css !== undefined ? css : snippetsData[index].css,
     js: js !== undefined ? js : snippetsData[index].js,
+    java: java !== undefined ? java : snippetsData[index].java,
     updatedAt: new Date().toISOString()
   };
   
@@ -178,6 +180,116 @@ app.post('/gists', async (req, res) => {
     console.error('Error creating gist:', error?.response?.data || error.message);
     return res.status(500).json({ message: 'Failed to create gist', error: error?.response?.data || error.message });
   }
+});
+
+// Java execution endpoints
+const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+// Compile Java code
+app.post('/compile/java', (req, res) => {
+  const { code } = req.body;
+  
+  if (!code) {
+    return res.status(400).json({ message: 'Java code is required' });
+  }
+
+  // Create a temporary directory for Java files
+  const tempDir = path.join(__dirname, 'temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+
+  // Extract class name from code (simple extraction)
+  const classMatch = code.match(/public\s+class\s+(\w+)/);
+  const className = classMatch ? classMatch[1] : 'Main';
+  
+  const javaFilePath = path.join(tempDir, `${className}.java`);
+  fs.writeFileSync(javaFilePath, code);
+
+  // Compile Java code
+  exec(`javac ${javaFilePath}`, { timeout: 5000 }, (error, stdout, stderr) => {
+    if (error) {
+      // Clean up
+      if (fs.existsSync(javaFilePath)) {
+        fs.unlinkSync(javaFilePath);
+      }
+      return res.status(400).json({
+        success: false,
+        error: stderr || error.message,
+        output: stdout
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Java code compiled successfully',
+      className: className
+    });
+  });
+});
+
+// Execute Java code
+app.post('/execute/java', (req, res) => {
+  const { code } = req.body;
+  
+  if (!code) {
+    return res.status(400).json({ message: 'Java code is required' });
+  }
+
+  const tempDir = path.join(__dirname, 'temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+
+  const classMatch = code.match(/public\s+class\s+(\w+)/);
+  const className = classMatch ? classMatch[1] : 'Main';
+  
+  const javaFilePath = path.join(tempDir, `${className}.java`);
+  fs.writeFileSync(javaFilePath, code);
+
+  // Compile first, then execute
+  exec(`javac ${javaFilePath}`, { timeout: 5000 }, (compileError, compileStdout, compileStderr) => {
+    if (compileError) {
+      if (fs.existsSync(javaFilePath)) {
+        fs.unlinkSync(javaFilePath);
+      }
+      return res.status(400).json({
+        success: false,
+        error: compileStderr || compileError.message,
+        output: compileStdout,
+        type: 'compilation'
+      });
+    }
+
+    // Execute compiled Java code
+    exec(`cd ${tempDir} && java ${className}`, { timeout: 5000 }, (execError, execStdout, execStderr) => {
+      // Clean up
+      const classFile = path.join(tempDir, `${className}.class`);
+      if (fs.existsSync(javaFilePath)) {
+        fs.unlinkSync(javaFilePath);
+      }
+      if (fs.existsSync(classFile)) {
+        fs.unlinkSync(classFile);
+      }
+
+      if (execError) {
+        return res.status(400).json({
+          success: false,
+          error: execStderr || execError.message,
+          output: execStdout,
+          type: 'execution'
+        });
+      }
+
+      res.json({
+        success: true,
+        output: execStdout,
+        error: execStderr || null
+      });
+    });
+  });
 });
 
 // Import gist by ID and create a snippet from it
