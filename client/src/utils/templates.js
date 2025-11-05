@@ -1,1028 +1,232 @@
+/* Advanced templates curated for LiveCode preview environment.
+   These templates avoid ESM-only module injection and prefer global/UMD/CDN
+   builds because the preview injects <script src="..."></script> tags.
+ */
+
 export const templates = [
   {
-    id: 'html-boilerplate',
-    name: 'HTML5 Boilerplate',
-    description: 'A basic HTML5 starter template',
-    tags: ['HTML', 'Starter'],
-    html: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Page</title>
-</head>
-<body>
-  <header>
-    <h1>Welcome to My Page</h1>
-  </header>
-  
-  <main>
-    <section>
-      <h2>About</h2>
-      <p>This is a simple HTML5 boilerplate template.</p>
-    </section>
-  </main>
-  
-  <footer>
-    <p>&copy; 2025 My Website</p>
-  </footer>
-</body>
-</html>`,
-    css: `/* Basic Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: #333;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-header, footer {
-  text-align: center;
-  padding: 20px 0;
-  margin-bottom: 20px;
-}
-
-footer {
-  margin-top: 40px;
-  font-size: 0.9rem;
-  color: #666;
-  border-top: 1px solid #eee;
-}
-
-h1 {
-  color: #2c3e50;
-}
-
-h2 {
-  margin-bottom: 15px;
-  color: #3498db;
-}
-
-section {
-  margin-bottom: 30px;
-}`,
-    js: `// You can add your JavaScript here
-console.log('HTML5 Boilerplate loaded!');
-
-// Example: Add a click event to the h1
-document.addEventListener('DOMContentLoaded', () => {
-  const heading = document.querySelector('h1');
-  if (heading) {
-    heading.addEventListener('click', () => {
-      alert('Welcome to my page!');
-    });
-  }
-});`
-  },
-  {
-    id: 'react-umd-starter',
-    name: 'React (UMD) Starter',
-    description: 'A minimal React starter using UMD builds (good for quick demos).',
-    tags: ['react', 'javascript', 'framework'],
-    languages: ['html', 'css', 'javascript'],
-    libraries: [
-      { name: 'React', cdn: 'https://unpkg.com/react@17/umd/react.development.js', type: 'script' },
-      { name: 'React DOM', cdn: 'https://unpkg.com/react-dom@17/umd/react-dom.development.js', type: 'script' }
-    ],
-    html: `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>React UMD Starter</title>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>`,
-    css: `/* Simple centering */
-body { font-family: Arial, Helvetica, sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
-#root { width:90%; max-width:720px; text-align:center; }`,
-    js: `// React (UMD) example
-const e = React.createElement;
-ReactDOM.render(
-  e('div', null, e('h1', null, 'Hello from React (UMD)!'), e('p', null, 'This is a quick demo.')),
-  document.getElementById('root')
-);`
-  },
-  {
-    id: 'vue3-starter',
-    name: 'Vue 3 Starter',
-    description: 'A small Vue 3 starter using the global build.',
-    tags: ['vue', 'javascript', 'framework'],
-    languages: ['html', 'css', 'javascript'],
-    libraries: [
-      { name: 'Vue 3', cdn: 'https://unpkg.com/vue@3/dist/vue.global.js', type: 'script' }
-    ],
-    html: `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vue 3 Starter</title>
-  </head>
-  <body>
-    <div id="app">
-      <h1>{{ message }}</h1>
-    </div>
-  </body>
-</html>`,
-    css: `body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding: 40px; }
-#app { text-align: center; }`,
-    js: `const { createApp } = Vue;
-createApp({
-  data() { return { message: 'Hello from Vue 3!' } }
-}).mount('#app');`
-  },
-  {
-    id: 'tailwind-starter',
-    name: 'Tailwind CDN Starter',
-    description: 'Start with Tailwind via the CDN (good for quick layouts).',
-    tags: ['tailwind', 'css', 'utility'],
-    languages: ['html', 'css'],
-    libraries: [
-      { name: 'Tailwind CDN', cdn: 'https://cdn.tailwindcss.com', type: 'script' }
-    ],
-    html: `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Tailwind Starter</title>
-  </head>
-  <body class="bg-gray-100">
-    <div class="min-h-screen flex items-center justify-center">
-      <div class="bg-white rounded-lg shadow p-8 max-w-xl w-full">
-        <h1 class="text-2xl font-bold mb-4">Tailwind CDN Starter</h1>
-        <p class="text-gray-600">This uses the Tailwind CDN for quick prototyping.</p>
-      </div>
-    </div>
-  </body>
-</html>`,
-    css: `/* Tailwind via CDN handles most styles; include small additions here */
-` ,
-    js: `// Tailwind loaded via CDN; add JS here if needed
-console.log('Tailwind demo loaded');`
-  },
-  {
-    id: 'jquery-quick',
-    name: 'jQuery Quick',
-    description: 'Simple jQuery example wired via CDN.',
-    tags: ['jquery', 'javascript'],
-    languages: ['html', 'css', 'javascript'],
-    libraries: [
-      { name: 'jQuery', cdn: 'https://code.jquery.com/jquery-3.7.1.min.js', type: 'script' }
-    ],
-    html: `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>jQuery Quick</title>
-  </head>
-  <body>
-    <div style="padding:40px; text-align:center;">
-      <button id="btn">Click me</button>
-      <div id="out" style="margin-top:20px;color:#333"></div>
-    </div>
-  </body>
-</html>`,
-    css: `button { padding: 10px 16px; border-radius: 6px; border: none; background:#2563eb; color:white; cursor:pointer; }`,
-    js: `$('#btn').on('click', function(){ $('#out').text('Button clicked via jQuery!'); });`
-  },
-  {
-    id: 'responsive-layout',
-    name: 'Responsive Flexbox Layout',
-    description: 'A responsive layout using flexbox',
-    tags: ['CSS', 'Flexbox', 'Responsive'],
-    html: `<div class="container">
-  <header class="header">
-    <h1>Flexbox Layout</h1>
-    <nav>
-      <ul class="nav-links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">About</a></li>
-        <li><a href="#">Services</a></li>
-        <li><a href="#">Contact</a></li>
-      </ul>
-    </nav>
-  </header>
-  
-  <div class="main-content">
-    <main class="content">
-      <h2>Main Content</h2>
-      <p>This is a responsive layout using flexbox. Resize the browser to see how it adapts.</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris.</p>
-    </main>
-    
-    <aside class="sidebar">
-      <h3>Sidebar</h3>
-      <p>This is the sidebar content.</p>
-      <ul>
-        <li>Item 1</li>
-        <li>Item 2</li>
-        <li>Item 3</li>
-      </ul>
-    </aside>
-  </div>
-  
-  <footer class="footer">
-    <p>&copy; 2025 Flexbox Layout</p>
-  </footer>
-</div>`,
-    css: `/* Basic Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Arial', sans-serif;
-  line-height: 1.6;
-  color: #333;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* Header Styles */
-.header {
-  background-color: #2c3e50;
-  color: white;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.nav-links {
-  display: flex;
-  list-style: none;
-}
-
-.nav-links li {
-  margin-left: 1rem;
-}
-
-.nav-links a {
-  color: white;
-  text-decoration: none;
-}
-
-.nav-links a:hover {
-  text-decoration: underline;
-}
-
-/* Main Content Styles */
-.main-content {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  margin: 20px 0;
-}
-
-.content {
-  flex: 3;
-  min-width: 60%;
-  padding: 20px;
-  background-color: #f9f9f9;
-}
-
-.sidebar {
-  flex: 1;
-  min-width: 200px;
-  padding: 20px;
-  background-color: #f1f1f1;
-}
-
-/* Footer Styles */
-.footer {
-  background-color: #2c3e50;
-  color: white;
-  text-align: center;
-  padding: 1rem;
-  margin-top: auto;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .nav-links {
-    margin-top: 1rem;
-    justify-content: center;
-  }
-  
-  .nav-links li:first-child {
-    margin-left: 0;
-  }
-  
-  .main-content {
-    flex-direction: column;
-  }
-  
-  .sidebar {
-    margin-top: 20px;
-  }
-}`,
-    js: `// Mobile menu toggle functionality
-document.addEventListener('DOMContentLoaded', () => {
-  // This is just a placeholder for potential JavaScript functionality
-  console.log('Responsive layout loaded!');
-  
-  // You could add a mobile menu toggle here
-  // Example:
-  // const menuButton = document.createElement('button');
-  // menuButton.textContent = 'Menu';
-  // menuButton.classList.add('menu-toggle');
-  // document.querySelector('.header').prepend(menuButton);
-  
-  // menuButton.addEventListener('click', () => {
-  //   document.querySelector('.nav-links').classList.toggle('show');
-  // });
-});`
-  },
-  {
-    id: 'interactive-form',
-    name: 'Interactive Form',
-    description: 'A form with validation and interactive elements',
-    tags: ['Form', 'JavaScript', 'Validation'],
-    html: `<div class="form-container">
-  <h2>Contact Form</h2>
-  <form id="contact-form">
-    <div class="form-group">
-      <label for="name">Name</label>
-      <input type="text" id="name" name="name" placeholder="Your name" required>
-      <div class="error-message" id="name-error"></div>
-    </div>
-    
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" placeholder="Your email" required>
-      <div class="error-message" id="email-error"></div>
-    </div>
-    
-    <div class="form-group">
-      <label for="subject">Subject</label>
-      <select id="subject" name="subject">
-        <option value="" disabled selected>Choose a subject</option>
-        <option value="general">General Inquiry</option>
-        <option value="support">Technical Support</option>
-        <option value="feedback">Feedback</option>
-        <option value="other">Other</option>
-      </select>
-    </div>
-    
-    <div class="form-group">
-      <label for="message">Message</label>
-      <textarea id="message" name="message" placeholder="Your message" rows="5" required></textarea>
-      <div class="error-message" id="message-error"></div>
-    </div>
-    
-    <div class="form-group">
-      <label class="checkbox-label">
-        <input type="checkbox" id="terms" name="terms" required>
-        I agree to the terms and conditions
-      </label>
-      <div class="error-message" id="terms-error"></div>
-    </div>
-    
-    <button type="submit" class="submit-btn">Send Message</button>
-  </form>
-  
-  <div id="form-success" class="success-message hidden">
-    Thank you! Your message has been sent successfully.
-  </div>
-</div>`,
-    css: `/* Form Styles */
-.form-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #555;
-}
-
-input[type="text"],
-input[type="email"],
-select,
-textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-  transition: border-color 0.3s;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-select:focus,
-textarea:focus {
-  border-color: #4CAF50;
-  outline: none;
-  box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  font-weight: normal;
-}
-
-input[type="checkbox"] {
-  margin-right: 10px;
-}
-
-.submit-btn {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.submit-btn:hover {
-  background-color: #45a049;
-}
-
-.error-message {
-  color: #d9534f;
-  font-size: 14px;
-  margin-top: 5px;
-  min-height: 20px;
-}
-
-.success-message {
-  text-align: center;
-  padding: 20px;
-  background-color: #dff0d8;
-  color: #3c763d;
-  border-radius: 4px;
-  margin-top: 20px;
-}
-
-.hidden {
-  display: none;
-}
-
-/* Form validation visual cues */
-input:invalid,
-textarea:invalid {
-  border-color: #d9534f;
-}
-
-input:valid,
-textarea:valid {
-  border-color: #4CAF50;
-}`,
-    js: `document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('contact-form');
-  const formSuccess = document.getElementById('form-success');
-  
-  // Form validation
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    // Reset error messages
-    document.querySelectorAll('.error-message').forEach(el => {
-      el.textContent = '';
-    });
-    
-    let isValid = true;
-    
-    // Validate name
-    const nameInput = document.getElementById('name');
-    if (nameInput.value.trim() === '') {
-      document.getElementById('name-error').textContent = 'Name is required';
-      isValid = false;
-    }
-    
-    // Validate email
-    const emailInput = document.getElementById('email');
-    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
-    if (!emailRegex.test(emailInput.value)) {
-      document.getElementById('email-error').textContent = 'Please enter a valid email address';
-      isValid = false;
-    }
-    
-    // Validate message
-    const messageInput = document.getElementById('message');
-    if (messageInput.value.trim().length < 10) {
-      document.getElementById('message-error').textContent = 'Message must be at least 10 characters';
-      isValid = false;
-    }
-    
-    // Validate terms checkbox
-    const termsInput = document.getElementById('terms');
-    if (!termsInput.checked) {
-      document.getElementById('terms-error').textContent = 'You must agree to the terms';
-      isValid = false;
-    }
-    
-    // If form is valid, show success message
-    if (isValid) {
-      form.classList.add('hidden');
-      formSuccess.classList.remove('hidden');
-      
-      // In a real application, you would send the form data to a server here
-      console.log('Form submitted with data:', {
-        name: nameInput.value,
-        email: emailInput.value,
-        subject: document.getElementById('subject').value,
-        message: messageInput.value,
-        terms: termsInput.checked
-      });
-    }
-  });
-  
-  // Real-time validation feedback
-  const inputs = form.querySelectorAll('input, textarea, select');
-  inputs.forEach(input => {
-    input.addEventListener('input', () => {
-      // Clear error message when user starts typing
-      const errorId = input.id + '-error';
-      const errorElement = document.getElementById(errorId);
-      if (errorElement) {
-        errorElement.textContent = '';
-      }
-    });
-  });
-});`
-  },
-  {
     id: 'dark-mode-toggle',
-    name: 'Dark Mode Toggle',
-    description: 'A page with dark/light mode toggle functionality',
-    tags: ['JavaScript', 'CSS', 'Theme'],
-    html: `<div class="theme-container">
-  <header>
-    <h1>Dark Mode Toggle</h1>
-    <div class="theme-toggle">
-      <input type="checkbox" id="theme-switch" class="theme-switch">
-      <label for="theme-switch" class="theme-label">
-        <span class="theme-icon">🌙</span>
-        <span class="theme-icon">☀️</span>
-        <span class="theme-slider"></span>
-      </label>
+    name: 'Dark Mode Toggle (CSS variables)',
+    description: 'A practical theme toggle using CSS variables and persisted preference in localStorage. Demonstrates how to implement site-wide dark mode in real apps.',
+    tags: ['theme','dark-mode','css-variables'],
+    languages: ['html','css','javascript'],
+    libraries: [],
+    html: `<!doctype html>
+<html>
+  <body>
+    <div class="app">
+      <header>
+        <h1>Dark Mode Toggle</h1>
+        <button id="toggle">Toggle Theme</button>
+      </header>
+      <main>
+        <p>This template shows a theme using CSS variables and a persisted user choice.</p>
+      </main>
     </div>
-  </header>
-  
-  <main>
-    <section class="content-section">
-      <h2>About Dark Mode</h2>
-      <p>Dark mode reduces the light emitted by device screens while maintaining the minimum color contrast ratios required for readability.</p>
-      <p>Toggle the switch in the header to change between light and dark themes.</p>
-    </section>
-    
-    <section class="content-section">
-      <h2>Benefits</h2>
-      <ul>
-        <li>Reduces eye strain in low-light conditions</li>
-        <li>Improves battery life on devices with OLED screens</li>
-        <li>Can help some people sleep better if used before bedtime</li>
-        <li>Looks cool and modern</li>
-      </ul>
-    </section>
-    
-    <section class="content-section">
-      <h2>Try It Out</h2>
-      <p>Click the toggle switch in the header to see the theme change in real-time.</p>
-      <button class="theme-button">Sample Button</button>
-    </section>
-  </main>
-  
-  <footer>
-    <p>Dark Mode Toggle Example &copy; 2025</p>
-  </footer>
-</div>`,
-    css: `/* Base styles */
-:root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f7fa;
-  --text-primary: #333333;
-  --text-secondary: #666666;
-  --accent-color: #4a6cf7;
-  --border-color: #e1e4e8;
-  --shadow-color: rgba(0, 0, 0, 0.1);
-  --transition-speed: 0.3s;
-}
+  </body>
+</html>` ,
+    css: `:root{--bg:#ffffff;--text:#111111;--card:#f8fafc} .dark{--bg:#0b1220;--text:#e6eef8;--card:#0f1724} body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,Arial;padding:20px} .app header{display:flex;justify-content:space-between;align-items:center} button{padding:8px 12px;border-radius:6px;border:1px solid rgba(0,0,0,0.08)} main{margin-top:16px;padding:12px;background:var(--card);border-radius:8px}`,
+    js: `const root=document.documentElement;const btn=document.getElementById('toggle');const apply=(dark)=>{if(dark){root.classList.add('dark');localStorage.setItem('lc-theme','dark')}else{root.classList.remove('dark');localStorage.setItem('lc-theme','light')}};btn.addEventListener('click',()=>apply(!root.classList.contains('dark')));const saved=localStorage.getItem('lc-theme');apply(saved?saved==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches);`
+  },
 
-/* Dark theme variables */
-.dark-theme {
-  --bg-primary: #1a1a2e;
-  --bg-secondary: #16213e;
-  --text-primary: #e6e6e6;
-  --text-secondary: #b0b0b0;
-  --accent-color: #6a8fff;
-  --border-color: #2a2a3a;
-  --shadow-color: rgba(0, 0, 0, 0.3);
-}
+  {
+    id: 'responsive-dashboard',
+    name: 'Responsive Dashboard Grid',
+    description: 'A small responsive dashboard layout using CSS Grid and a simple card component — useful for admin/UIs.',
+    tags: ['responsive','dashboard','css-grid'],
+    languages: ['html','css','javascript'],
+    libraries: [],
+    html: `<!doctype html>
+<html>
+  <body>
+    <div class="grid">
+      <div class="card">Users<br><strong>1,234</strong></div>
+      <div class="card">Sales<br><strong>$12,345</strong></div>
+      <div class="card">Errors<br><strong>3</strong></div>
+      <div class="card wide">Activity log</div>
+    </div>
+  </body>
+</html>`,
+    css: `.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;padding:16px} .card{grid-column:span 3;background:#fff;padding:16px;border-radius:8px;box-shadow:0 4px 10px rgba(2,6,23,0.06)} .card.wide{grid-column:span 6} @media(max-width:800px){.card{grid-column:span 6}.card.wide{grid-column:span 12}} body{font-family:Inter,system-ui,Arial;background:#f3f4f6;padding:12px}`,
+    js: `// Example: update numbers (simulated)
+setInterval(()=>{document.querySelectorAll('.card strong').forEach((el,i)=>el.textContent = Math.floor(Math.random()*5000))},3000)`
+  },
 
-/* Global styles */
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
-  transition: background-color var(--transition-speed), color var(--transition-speed);
-  margin: 0;
-  padding: 0;
-}
+  {
+    id: 'pwa-service-worker-stub',
+    name: 'PWA Service Worker Stub',
+    description: 'Demonstrates a minimal Service Worker registration and simple offline caching strategy (client-only demo; service worker file is registered in the preview).',
+    tags: ['pwa','service-worker','offline'],
+    languages: ['html','css','javascript'],
+    libraries: [],
+    html: `<!doctype html>
+<html>
+  <body>
+    <h1>PWA / SW Demo</h1>
+    <p>This registers a tiny service worker and caches the page shell.</p>
+  </body>
+</html>`,
+    css: `body{font-family:Inter,system-ui,Arial;padding:16px}`,
+    js: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').then(()=>console.log('SW registered')).catch(e=>console.error('SW reg failed',e));}else console.log('SW not supported');` 
+  },
 
-.theme-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
+  {
+    id: 'auth-popup-mock',
+    name: 'OAuth Popup Mock',
+    description: 'A client-side mock of an OAuth popup flow (opens a popup and receives a message). Useful to prototype sign-in flows.',
+    tags: ['auth','oauth','popup'],
+    languages: ['html','css','javascript'],
+    libraries: [],
+    html: `<!doctype html>
+<html>
+  <body>
+    <h1>Auth Popup Mock</h1>
+    <button id="signin">Sign in (Popup)</button>
+    <pre id="out"></pre>
+  </body>
+</html>`,
+    css: `body{font-family:Inter,system-ui,Arial;padding:16px}button{padding:8px 12px}`,
+    js: `const btn = document.getElementById('signin');
+const out = document.getElementById('out');
 
-/* Header styles */
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 30px;
-}
-
-h1, h2 {
-  color: var(--text-primary);
-  transition: color var(--transition-speed);
-}
-
-/* Theme toggle styles */
-.theme-toggle {
-  position: relative;
-}
-
-.theme-switch {
-  opacity: 0;
-  position: absolute;
-}
-
-.theme-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  width: 60px;
-  height: 30px;
-  background-color: var(--bg-secondary);
-  border-radius: 100px;
-  position: relative;
-  transition: background-color var(--transition-speed);
-  padding: 0 5px;
-}
-
-.theme-slider {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background-color: white;
-  transition: transform var(--transition-speed);
-  box-shadow: 0 2px 4px var(--shadow-color);
-}
-
-.theme-switch:checked + .theme-label .theme-slider {
-  transform: translateX(30px);
-}
-
-.theme-icon {
-  font-size: 14px;
-  transition: opacity var(--transition-speed);
-}
-
-/* Content section styles */
-.content-section {
-  background-color: var(--bg-secondary);
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 10px var(--shadow-color);
-  transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
-}
-
-p, li {
-  color: var(--text-secondary);
-  transition: color var(--transition-speed);
-}
-
-ul {
-  padding-left: 20px;
-}
-
-/* Button styles */
-.theme-button {
-  background-color: var(--accent-color);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color var(--transition-speed);
-}
-
-.theme-button:hover {
-  opacity: 0.9;
-}
-
-/* Footer styles */
-footer {
-  text-align: center;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-color);
-  margin-top: 30px;
-  color: var(--text-secondary);
-  transition: color var(--transition-speed), border-color var(--transition-speed);
-}`,
-    js: `document.addEventListener('DOMContentLoaded', () => {
-  const themeSwitch = document.getElementById('theme-switch');
-  const body = document.body;
-  
-  // Check for saved theme preference or prefer-color-scheme
-  const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-  const savedTheme = localStorage.getItem('theme');
-  
-  // Apply saved theme or use system preference
-  if (savedTheme === 'dark' || (!savedTheme && prefersDarkScheme.matches)) {
-    body.classList.add('dark-theme');
-    themeSwitch.checked = true;
+btn.addEventListener('click', () => {
+  const popup = window.open('', 'auth', 'width=500,height=600');
+  if (!popup) {
+    out.textContent = 'Popup blocked by browser';
+    return;
   }
-  
-  // Toggle theme when switch is clicked
-  themeSwitch.addEventListener('change', () => {
-    if (themeSwitch.checked) {
-      body.classList.add('dark-theme');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      body.classList.remove('dark-theme');
-      localStorage.setItem('theme', 'light');
-    }
-  });
-  
-  // Sample button click event
-  const themeButton = document.querySelector('.theme-button');
-  themeButton.addEventListener('click', () => {
-    alert(\`You're currently using \${themeSwitch.checked ? 'dark' : 'light'} mode!\`);
-  });
-  
-  // Listen for system theme changes
-  prefersDarkScheme.addEventListener('change', (e) => {
-    // Only auto-switch if user hasn't manually set a preference
-    if (!localStorage.getItem('theme')) {
-      if (e.matches) {
-        body.classList.add('dark-theme');
-        themeSwitch.checked = true;
-      } else {
-        body.classList.remove('dark-theme');
-        themeSwitch.checked = false;
+
+  // Write a simple popup HTML and attach the click handler via the popup's document
+  const doc = popup.document;
+  doc.open();
+  doc.write('<!doctype html><html><body><p>Simulated provider. Click to return token.</p><button id="send">Return Token</button></body></html>');
+  doc.close();
+
+  // Wait for the popup DOM to be ready and then attach the listener
+  const attach = () => {
+    try {
+      const send = doc.getElementById('send');
+      if (send) {
+        send.addEventListener('click', () => {
+          window.opener.postMessage({ type: 'auth', token: 'tok_abc123' }, '*');
+          popup.close();
+        });
+        return;
       }
+    } catch (e) {
+      // ignore cross-origin or timing issues
     }
-  });
+    setTimeout(attach, 50);
+  };
+  attach();
+});
+
+window.addEventListener('message', (ev) => {
+  if (ev.data && ev.data.type === 'auth') {
+    out.textContent = 'Received token: ' + ev.data.token;
+  }
 });`
   },
+
   {
-    id: 'pyodide-python',
-    name: 'Python (Pyodide) Demo',
-    description: 'Run Python in the browser using Pyodide for quick Python experiments.',
-    tags: ['python', 'pyodide', 'wasm'],
-    languages: ['html', 'css', 'javascript'],
-    libraries: [
-      { name: 'Pyodide', cdn: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js', type: 'script' }
-    ],
-    html: `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Pyodide Python Demo</title>
-  </head>
-  <body style="font-family:Inter,system-ui,Arial,Helvetica,sans-serif;padding:24px;">
-    <h1>Pyodide: Python in the Browser</h1>
-    <textarea id="pycode" style="width:100%;height:120px">print('Hello from Pyodide!')\nfor i in range(3):\n    print(i)</textarea>
-    <div style="margin-top:12px;"><button id="run">Run Python</button></div>
-    <pre id="output" style="background:#f5f5f5;padding:12px;border-radius:6px;margin-top:12px;white-space:pre-wrap"></pre>
-  </body>
-</html>`,
-    css: `button { padding: 8px 12px; border-radius:6px; border: none; background:#0ea5e9; color:white; cursor:pointer }
-#output { min-height: 60px; }`,
-    js: `// Wait for pyodide to load
-async function main(){
-  const output = document.getElementById('output');
-  output.textContent = 'Loading Pyodide...';
-  const pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/' });
-  output.textContent = 'Pyodide ready. Click Run.';
-  document.getElementById('run').addEventListener('click', async () => {
-    output.textContent = '';
-    const code = document.getElementById('pycode').value;
-    try {
-      const result = await pyodide.runPythonAsync(code);
-      // When Python prints, it goes to stdout; capture by redirecting later if needed
-      output.textContent = result === undefined ? 'Executed (no return value)' : String(result);
-    } catch (err) {
-      output.textContent = 'Error: ' + err;
-    }
-  });
-}
-main();`
-  },
-  {
-    id: 'preact-starter',
-    name: 'Preact Starter (UMD)',
-    description: 'Small Preact example using the UMD build for tiny React-like demos.',
-    tags: ['preact', 'javascript', 'framework'],
-    languages: ['html', 'css', 'javascript'],
-    libraries: [
-      { name: 'Preact', cdn: 'https://unpkg.com/preact@10.13.2/dist/preact.umd.js', type: 'script' }
-    ],
-    html: `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Preact Starter</title>
-  </head>
-  <body>
-    <div id="app"></div>
-  </body>
-</html>`,
-    css: `body { font-family: Inter, system-ui, Arial, sans-serif; padding:24px; }
-#app { max-width:720px; margin:0 auto; }`,
-    js: `const { h, render, Component } = preact;
-class App extends Component {
-  render() {
-    return h('div', null, h('h1', null, 'Hello from Preact!'), h('p', null, 'A minimal UMD-based example.'));
-  }
-}
-render(h(App, null), document.getElementById('app'));`
-  },
-  {
-    id: 'd3-visualization',
-    name: 'D3.js Visualization',
-    description: 'A small D3 bar chart demo.',
-    tags: ['d3', 'visualization', 'javascript'],
-    languages: ['html', 'css', 'javascript'],
-    libraries: [
-      { name: 'D3', cdn: 'https://d3js.org/d3.v7.min.js', type: 'script' }
-    ],
+    id: 'file-upload-preview',
+    name: 'File Upload & Preview',
+    description: 'Client-side file input that previews images and reads text files — common in many apps. Includes a visible upload button and drag-and-drop support.',
+    tags: ['file','upload','preview','drag-drop'],
+    languages: ['html','css','javascript'],
+    libraries: [],
     html: `<!doctype html>
 <html>
   <body>
-    <h2 style="font-family:Inter,system-ui;padding:16px 24px">D3 Bar Chart</h2>
-    <div id="chart"></div>
+    <h1>File Upload Preview</h1>
+    <div class="controls">
+      <button id="uploadBtn">Choose file</button>
+      <input id="file" type="file" style="display:none" />
+      <span id="filename" style="margin-left:12px;color:#555"></span>
+    </div>
+    <div id="preview" class="preview" style="margin-top:12px">Drop a file here or click "Choose file"</div>
   </body>
 </html>`,
-    css: `#chart svg { width:100%; height:300px; display:block; }
-body { margin:0; }`,
-    js: `const data = [30, 86, 168, 281, 303, 365];
-const width = 600; const height = 300;
-const svg = d3.select('#chart').append('svg').attr('viewBox', '0 0 600 300');
-const x = d3.scaleBand().domain(d3.range(data.length)).range([0, width]).padding(0.1);
-const y = d3.scaleLinear().domain([0, d3.max(data)]).range([height, 0]);
-svg.selectAll('rect').data(data).enter().append('rect')
-  .attr('x', (d,i)=> x(i))
-  .attr('y', d=> y(d))
-  .attr('height', d=> height - y(d))
-  .attr('width', x.bandwidth())
-  .attr('fill', '#3b82f6');`
+    css: `body{font-family:Inter,system-ui,Arial;padding:16px}img{max-width:100%;height:auto;border-radius:8px}.controls{display:flex;align-items:center;gap:8px}button#uploadBtn{padding:8px 12px;border-radius:6px;border:1px solid rgba(0,0,0,0.08);background:#fff;cursor:pointer}.preview{min-height:120px;border:2px dashed #e2e8f0;border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:center;color:#64748b}`,
+    js: `const fileInput = document.getElementById('file');
+const uploadBtn = document.getElementById('uploadBtn');
+const preview = document.getElementById('preview');
+const filename = document.getElementById('filename');
+let currentUrl = null;
+
+function clearPreview(){ if(currentUrl){ URL.revokeObjectURL(currentUrl); currentUrl = null; } preview.innerHTML = 'Drop a file here or click "Choose file"'; filename.textContent = ''; }
+
+function renderFile(f){ preview.innerHTML = ''; filename.textContent = f.name; if(f.type && f.type.startsWith('image/')){ currentUrl = URL.createObjectURL(f); const img = document.createElement('img'); img.src = currentUrl; img.alt = f.name; img.style.maxWidth = '100%'; img.style.borderRadius = '8px'; preview.appendChild(img); } else if(f.type && f.type.startsWith('text')){ f.text().then(t=>{ const pre = document.createElement('pre'); pre.textContent = t.slice(0,200); preview.appendChild(pre); }).catch(()=>{ preview.textContent = 'Unable to read file.' }); } else { preview.textContent = 'Preview not available for this file type.\nFile name: ' + f.name; } }
+
+uploadBtn.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(!f) return; clearPreview(); renderFile(f); });
+
+// Drag & drop support
+preview.addEventListener('dragover', (e)=>{ e.preventDefault(); preview.style.outline = '3px dashed #9ca3af'; });
+preview.addEventListener('dragleave', ()=>{ preview.style.outline = 'none'; });
+preview.addEventListener('drop', (e)=>{ e.preventDefault(); preview.style.outline = 'none'; const f = e.dataTransfer.files && e.dataTransfer.files[0]; if(!f) return; clearPreview(); renderFile(f); });
+` 
   },
+
   {
-    id: 'threejs-basic',
-    name: 'Three.js Basic',
-    description: 'Basic Three.js scene with a rotating cube.',
-    tags: ['threejs', '3d', 'webgl'],
-    languages: ['html', 'css', 'javascript'],
-    libraries: [
-      { name: 'Three.js', cdn: 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js', type: 'script' }
-    ],
+    id: 'csv-import-export',
+    name: 'CSV Import & Export',
+    description: 'Import CSV into a small table and export data back to CSV — useful for admin or reporting tools.',
+    tags: ['csv','import','export'],
+    languages: ['html','css','javascript'],
+    libraries: [],
     html: `<!doctype html>
 <html>
-  <body style="margin:0;overflow:hidden">
-    <canvas id="c"></canvas>
+  <body>
+    <h1>CSV Import / Export</h1>
+    <input id="csvfile" type="file" accept=".csv" />
+    <button id="export">Export CSV</button>
+    <pre id="out" style="margin-top:12px"></pre>
   </body>
 </html>`,
-    css: `canvas { display:block; width:100vw; height:100vh; }`,
-    js: `const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas });
-const fov = 75; const aspect = innerWidth/innerHeight; const near=0.1; const far=1000;
-const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-camera.position.z = 5;
-const scene = new THREE.Scene();
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshNormalMaterial();
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
-function onResize(){ renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); }
-onResize(); window.addEventListener('resize', onResize);
-function animate(){ requestAnimationFrame(animate); cube.rotation.x += 0.01; cube.rotation.y += 0.01; renderer.render(scene, camera); }
-animate();`
+    css: `body{font-family:Inter,system-ui,Arial;padding:16px}`,
+    js: `let data=[];document.getElementById('csvfile').addEventListener('change',async(e)=>{const f=e.target.files[0];if(!f) return;const txt=await f.text();const rows=txt.trim().split('\n').map(r=>r.split(','));data=rows;document.getElementById('out').textContent = JSON.stringify(rows,null,2);});document.getElementById('export').addEventListener('click',()=>{if(!data.length) return;const csv = data.map(r=>r.join(',')).join('\n'); const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download='export.csv'; a.click(); URL.revokeObjectURL(url);});`
   },
+
   {
-    id: 'chartjs-line',
-    name: 'Chart.js Line Chart',
-    description: 'Simple Chart.js line chart example.',
-    tags: ['chartjs', 'charts', 'visualization'],
-    languages: ['html', 'css', 'javascript'],
+    id: 'chartjs-dashboard',
+    name: 'Chart.js Mini Dashboard',
+    description: 'Basic Chart.js line + bar charts using CDN — practical for dashboards and reports.',
+    tags: ['chart','chartjs','dashboard'],
+    languages: ['html','css','javascript'],
     libraries: [
       { name: 'Chart.js', cdn: 'https://cdn.jsdelivr.net/npm/chart.js', type: 'script' }
     ],
     html: `<!doctype html>
 <html>
-  <body style="font-family:Inter,system-ui;padding:24px">
-    <canvas id="myChart"></canvas>
+  <body>
+    <canvas id="line" width="400" height="120"></canvas>
+    <canvas id="bar" width="400" height="120" style="margin-top:12px"></canvas>
   </body>
 </html>`,
-    css: `canvas { max-width:720px; }`,
-    js: `const ctx = document.getElementById('myChart').getContext('2d');
-new Chart(ctx, { type: 'line', data: { labels: ['Jan','Feb','Mar','Apr','May','Jun'], datasets: [{ label: 'Sales', data: [12,19,3,5,2,3], borderColor:'#ef4444', tension:0.3 }] }, options: {} });`
+    css: `body{font-family:Inter,system-ui,Arial;padding:16px}`,
+    js: `const l=document.getElementById('line').getContext('2d');const b=document.getElementById('bar').getContext('2d');new Chart(l,{type:'line',data:{labels:['Mon','Tue','Wed','Thu','Fri'],datasets:[{label:'Visitors',data:[12,19,7,14,18],borderColor:'#3b82f6',fill:false}]}});new Chart(b,{type:'bar',data:{labels:['A','B','C'],datasets:[{label:'Sales',data:[5,9,3],backgroundColor:['#ef4444','#f59e0b','#10b981']}]}});`
   },
+
   {
-    id: 'lodash-utilities',
-    name: 'Lodash Utilities',
-    description: 'Examples using Lodash utilities loaded from CDN.',
-    tags: ['lodash', 'utilities', 'javascript'],
-    languages: ['html', 'javascript'],
-    libraries: [
-      { name: 'Lodash', cdn: 'https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js', type: 'script' }
-    ],
+    id: 'indexeddb-notes',
+    name: 'IndexedDB Notes (real-life)',
+    description: 'A small notes app using IndexedDB for persistent client-side storage — practical for offline-capable UIs.',
+    tags: ['indexeddb','offline','storage'],
+    languages: ['html','css','javascript'],
+    libraries: [],
     html: `<!doctype html>
 <html>
-  <body style="font-family:Inter,system-ui;padding:24px">
-    <pre id="out"></pre>
+  <body>
+    <h1>IndexedDB Notes</h1>
+    <input id="title" placeholder="Note title" />
+    <button id="save">Save</button>
+    <ul id="list"></ul>
   </body>
 </html>`,
-    css: `pre { background:#f8fafc;padding:12px;border-radius:6px; }`,
-    js: `const arr = [1,2,3,4,5,6,7,8];
-const chunked = _.chunk(arr, 3);
-document.getElementById('out').textContent = 'Chunked: ' + JSON.stringify(chunked, null, 2);`
-  },
-  {
-    id: 'bootstrap-starter',
-    name: 'Bootstrap 5 Starter',
-    description: 'A quick Bootstrap 5 page (CSS + JS) via CDN.',
-    tags: ['bootstrap', 'css', 'framework'],
-    languages: ['html', 'css'],
-    libraries: [
-      { name: 'Bootstrap CSS', cdn: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css', type: 'css' },
-      { name: 'Bootstrap JS', cdn: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js', type: 'script' }
-    ],
-    html: `<!doctype html>
-<html>
-  <body class="p-4">
-    <div class="container">
-      <div class="alert alert-primary" role="alert">Bootstrap CDN starter</div>
-      <button class="btn btn-primary">Primary Button</button>
-    </div>
-  </body>
-</html>`,
-    css: `/* Bootstrap provides the styles; add minimal custom rules here */`,
-    js: `// Bootstrap JS via CDN; add custom JS here if needed` 
+    css: `body{font-family:Inter,system-ui,Arial;padding:16px}li{padding:8px;border-bottom:1px solid #e6edf3}`,
+    js: `function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('livecode-db',1);r.onupgradeneeded=()=>{r.result.createObjectStore('notes',{keyPath:'id',autoIncrement:true})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});}async function addNote(t){const db=await openDB();const tx=db.transaction('notes','readwrite');tx.objectStore('notes').add({title:t});return tx.complete}async function listNotes(){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction('notes','readonly');const req=tx.objectStore('notes').getAll();req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error)})}function render(){listNotes().then(items=>{const ul=document.getElementById('list');ul.innerHTML='';items.forEach(it=>{const li=document.createElement('li');li.textContent=it.title;ul.appendChild(li)})})}document.getElementById('save').addEventListener('click',async()=>{const t=document.getElementById('title').value;if(!t) return;await addNote(t);document.getElementById('title').value='';render()});render();`
   }
 ];
+
+export default templates;

@@ -14,7 +14,7 @@ export const Preview = forwardRef(function Preview({ srcDoc, style = {} }, ref) 
         border: 'none',
         ...style
       }}
-      sandbox="allow-scripts allow-same-origin"
+      sandbox="allow-scripts allow-same-origin allow-popups"
       loading="lazy"
     />
   );
