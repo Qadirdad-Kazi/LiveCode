@@ -13,7 +13,17 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-scripts": "5.0.1",
-    "react-split": "^2.0.14"
+    "react-split": "^2.0.14",
+    "socket.io-client": "^4.5.4",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
+    "diff": "^5.1.0",
+    "terser": "^5.24.0",
+    "cssnano": "^6.0.1",
+    "html-minifier": "^4.0.0",
+    "monaco-jsx-highlighter": "^1.0.0",
+    "sass": "^1.69.5",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",

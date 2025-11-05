@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, lazy, Suspense } from "react";
+import { lintJavaScript, lintCSS, lintHTML } from "../utils/linting";
 
 // Lazy-load Monaco so we can gracefully fallback if it fails to load
 const MonacoEditor = lazy(() => import("@monaco-editor/react"));
@@ -50,17 +51,91 @@ function TextareaFallback({ language, value, onChange, theme, options = {} }) {
   );
 }
 
-export function EditorPane({ language, value, onChange, theme, options = {} }) {
+export function EditorPane({ language, value, onChange, theme, options = {}, onLintErrors }) {
   const editorRef = useRef(null);
+  const lintTimerRef = useRef(null);
 
-  const handleEditorDidMount = (editor) => {
+  // Linting integration
+  useEffect(() => {
+    if (!options.enableLinting || !editorRef.current) return;
+
+    const performLinting = async () => {
+      try {
+        let errors = [];
+        if (language === 'javascript') {
+          errors = await lintJavaScript(value);
+        } else if (language === 'css') {
+          errors = await lintCSS(value);
+        } else if (language === 'html') {
+          errors = lintHTML(value);
+        }
+
+        // Update Monaco editor markers
+        if (editorRef.current && window.monaco) {
+          const markers = errors.map(err => ({
+            severity: err.severity === 'error' 
+              ? window.monaco.MarkerSeverity.Error 
+              : window.monaco.MarkerSeverity.Warning,
+            startLineNumber: err.line || 1,
+            startColumn: err.column || 1,
+            endLineNumber: err.line || 1,
+            endColumn: (err.column || 1) + 10,
+            message: err.message
+          }));
+
+          window.monaco.editor.setModelMarkers(
+            editorRef.current.getModel(),
+            'linting',
+            markers
+          );
+        }
+
+        if (onLintErrors) {
+          onLintErrors(errors);
+        }
+      } catch (error) {
+        console.error('Linting error:', error);
+      }
+    };
+
+    // Debounce linting
+    if (lintTimerRef.current) {
+      clearTimeout(lintTimerRef.current);
+    }
+
+    lintTimerRef.current = setTimeout(performLinting, 500);
+
+    return () => {
+      if (lintTimerRef.current) {
+        clearTimeout(lintTimerRef.current);
+      }
+    };
+  }, [value, language, options.enableLinting, onLintErrors]);
+
+  const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor;
+
+    // Store monaco globally for linting
+    if (monaco && !window.monaco) {
+      window.monaco = monaco;
+    }
 
     try {
       // Apply editor customizations after mount
       editor.updateOptions({
         padding: { top: 16, bottom: 16 },
       });
+
+      // Enhanced autocomplete with custom snippets
+      if (monaco) {
+        // Add custom snippets based on language
+        const snippets = getCustomSnippets(language);
+        monaco.languages.registerCompletionItemProvider(language, {
+          provideCompletionItems: () => ({
+            suggestions: snippets
+          })
+        });
+      }
 
       // Add focus styling
       const editorDomNode = editor.getDomNode && editor.getDomNode();
@@ -83,6 +158,27 @@ export function EditorPane({ language, value, onChange, theme, options = {} }) {
       // If anything on mount fails, log and allow ErrorBoundary to fallback
       console.warn('Error configuring Monaco editor:', err);
     }
+  };
+
+  const getCustomSnippets = (lang) => {
+    const baseSnippets = [];
+    if (lang === 'html') {
+      baseSnippets.push(
+        {
+          label: 'div',
+          kind: window.monaco?.languages.CompletionItemKind.Snippet,
+          insertText: '<div>${1}</div>',
+          insertTextRules: window.monaco?.languages.CompletionItemInsertTextRule.InsertAsSnippet
+        },
+        {
+          label: 'button',
+          kind: window.monaco?.languages.CompletionItemKind.Snippet,
+          insertText: '<button>${1}</button>',
+          insertTextRules: window.monaco?.languages.CompletionItemInsertTextRule.InsertAsSnippet
+        }
+      );
+    }
+    return baseSnippets;
   };
 
   return (
@@ -123,6 +219,10 @@ export function EditorPane({ language, value, onChange, theme, options = {} }) {
             onChange={(val) => onChange(val || "")}
             onMount={handleEditorDidMount}
             loading={<div className="editor-loading">Loading editor...</div>}
+            beforeMount={(monaco) => {
+              // Store monaco globally
+              window.monaco = monaco;
+            }}
           />
         </div>
       </Suspense>

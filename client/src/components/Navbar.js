@@ -10,7 +10,12 @@ export function Navbar({
   onImportFromGist,
   isDarkMode,
   onToggleDarkMode,
-  toggleTheme
+  toggleTheme,
+  onMinify,
+  onExportScreenshot,
+  onExportPDF,
+  onSnippetLibrary,
+  onLibraryPicker
 }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -81,6 +86,26 @@ export function Navbar({
           
           <button onClick={onExport} className="navbar-button">
             <i className="fa fa-download"></i> {(!isMobile || isMenuOpen) && 'Export'}
+          </button>
+          
+          <button onClick={onMinify} className="navbar-button" title="Minify Code">
+            <i className="fa fa-compress"></i> {(!isMobile || isMenuOpen) && 'Minify'}
+          </button>
+          
+          <button onClick={onExportScreenshot} className="navbar-button" title="Export Screenshot">
+            <i className="fa fa-camera"></i> {(!isMobile || isMenuOpen) && 'Screenshot'}
+          </button>
+          
+          <button onClick={onExportPDF} className="navbar-button" title="Export PDF">
+            <i className="fa fa-file-pdf"></i> {(!isMobile || isMenuOpen) && 'PDF'}
+          </button>
+          
+          <button onClick={onSnippetLibrary} className="navbar-button" title="Code Snippets">
+            <i className="fa fa-code"></i> {(!isMobile || isMenuOpen) && 'Snippets'}
+          </button>
+          
+          <button onClick={onLibraryPicker} className="navbar-button" title="Add Libraries">
+            <i className="fa fa-book"></i> {(!isMobile || isMenuOpen) && 'Libraries'}
           </button>
         </div>
         

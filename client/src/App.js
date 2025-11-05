@@ -13,8 +13,15 @@ import { Navbar } from './components/Navbar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { TemplateSelector } from './components/TemplateSelector';
 import { Footer } from './components/Footer';
+import { PreviewModes } from './components/PreviewModes';
+import { PerformanceMonitor } from './components/PerformanceMonitor';
+import { CodeDiffViewer } from './components/CodeDiffViewer';
+import { LibraryPicker } from './components/LibraryPicker';
+import { SnippetLibrary } from './components/SnippetLibrary';
 import { templates } from './utils/templates';
 import { createGist, fetchGist } from './utils/gist';
+import { minifyAll } from './utils/minifier';
+import { exportAsScreenshot, exportAsPDF } from './utils/exportFormats';
 import './styles/custom.css';
 
 const editorTabs = [
@@ -54,8 +61,18 @@ export default function App() {
     minimap: false,
     lineNumbers: true,
     theme: isDarkMode ? 'vs-dark' : 'vs-light',
-    autoFormat: false
+    autoFormat: false,
+    enableLinting: true
   });
+
+  // New feature states
+  const [previewMode, setPreviewMode] = useState({ name: 'Desktop', width: '100%', height: '100%' });
+  const [selectedLibraries, setSelectedLibraries] = useState([]);
+  const [isLibraryPickerOpen, setIsLibraryPickerOpen] = useState(false);
+  const [isSnippetLibraryOpen, setIsSnippetLibraryOpen] = useState(false);
+  const [isDiffViewerOpen, setIsDiffViewerOpen] = useState(false);
+  const [diffVersions, setDiffVersions] = useState({ old: null, new: null });
+  const [lintErrors, setLintErrors] = useState([]);
 
   // UI state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -75,18 +92,31 @@ export default function App() {
   // Refs
   const iframeRef = useRef(null);
 
-  // Create sanitized source document for preview
+  // Create sanitized source document for preview with external libraries
   const createSrcDoc = (htmlContent, cssContent, jsContent) => {
+    // Build library imports
+    const cssLibraries = selectedLibraries
+      .filter(lib => lib.type === 'css')
+      .map(lib => `<link rel="stylesheet" href="${lib.cdn}">`)
+      .join('\n    ');
+    
+    const scriptLibraries = selectedLibraries
+      .filter(lib => lib.type === 'script')
+      .map(lib => `<script src="${lib.cdn}"></script>`)
+      .join('\n    ');
+
     return `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          ${cssLibraries}
           <style>${DOMPurify.sanitize(cssContent)}</style>
         </head>
         <body>
           ${DOMPurify.sanitize(htmlContent)}
+          ${scriptLibraries}
           <script>
             // Console log capture
             const originalConsole = console;
@@ -298,6 +328,80 @@ ${html}
   // Clear console
   const clearConsole = () => {
     setConsoleLogs([]);
+  };
+
+  // Minify code
+  const minifyCode = async () => {
+    try {
+      setPingResult('Minifying code...');
+      const minified = await minifyAll(html, css, js);
+      setHtml(minified.html);
+      setCss(minified.css);
+      setJs(minified.js);
+      setPingResult('Code minified successfully!');
+      setTimeout(() => setPingResult(''), 3000);
+    } catch (error) {
+      console.error('Minification error:', error);
+      setPingResult('Error minifying code');
+      setTimeout(() => setPingResult(''), 3000);
+    }
+  };
+
+  // Export as screenshot
+  const handleExportScreenshot = async () => {
+    try {
+      if (iframeRef.current) {
+        await exportAsScreenshot(iframeRef.current);
+        setPingResult('Screenshot exported!');
+        setTimeout(() => setPingResult(''), 3000);
+      }
+    } catch (error) {
+      console.error('Screenshot export error:', error);
+      alert('Failed to export screenshot');
+    }
+  };
+
+  // Export as PDF
+  const handleExportPDF = async () => {
+    try {
+      if (iframeRef.current) {
+        await exportAsPDF(iframeRef.current);
+        setPingResult('PDF exported!');
+        setTimeout(() => setPingResult(''), 3000);
+      }
+    } catch (error) {
+      console.error('PDF export error:', error);
+      alert('Failed to export PDF');
+    }
+  };
+
+  // Show code diff
+  const showCodeDiff = (oldVersionIndex, newVersionIndex) => {
+    if (oldVersionIndex >= 0 && oldVersionIndex < versionHistory.length &&
+        newVersionIndex >= 0 && newVersionIndex < versionHistory.length) {
+      const oldVersion = versionHistory[oldVersionIndex];
+      const newVersion = versionHistory[newVersionIndex];
+      const oldCode = `${oldVersion.html}\n/* CSS */\n${oldVersion.css}\n/* JS */\n${oldVersion.js}`;
+      const newCode = `${newVersion.html}\n/* CSS */\n${newVersion.css}\n/* JS */\n${newVersion.js}`;
+      setDiffVersions({ old: oldCode, new: newCode });
+      setIsDiffViewerOpen(true);
+    }
+  };
+
+  // Insert code snippet
+  const handleInsertSnippet = (snippetCode) => {
+    if (activeTab === 'html') {
+      setHtml(prev => prev + '\n' + snippetCode);
+    } else if (activeTab === 'css') {
+      setCss(prev => prev + '\n' + snippetCode);
+    } else {
+      setJs(prev => prev + '\n' + snippetCode);
+    }
+  };
+
+  // Handle lint errors
+  const handleLintErrors = (errors) => {
+    setLintErrors(errors);
   };
 
   // Test backend connection
@@ -532,6 +636,11 @@ return (
       onTemplateClick={() => setIsTemplateOpen(true)}
       onSettingsClick={() => setIsSettingsOpen(true)}
       onToggleDarkMode={toggleDarkMode}
+      onMinify={minifyCode}
+      onExportScreenshot={handleExportScreenshot}
+      onExportPDF={handleExportPDF}
+      onSnippetLibrary={() => setIsSnippetLibraryOpen(true)}
+      onLibraryPicker={() => setIsLibraryPickerOpen(true)}
     />
 
     {/* Main Content - Split Horizontally */}
@@ -682,7 +791,9 @@ return (
                     wordWrap: editorSettings.wordWrap,
                     minimap: { enabled: false },
                     lineNumbers: editorSettings.lineNumbers ? 'on' : 'off',
+                    enableLinting: editorSettings.enableLinting,
                   }}
+                  onLintErrors={handleLintErrors}
                 />
               )}
               {activeTab === 'css' && (
@@ -697,7 +808,9 @@ return (
                     wordWrap: editorSettings.wordWrap,
                     minimap: { enabled: false },
                     lineNumbers: editorSettings.lineNumbers ? 'on' : 'off',
+                    enableLinting: editorSettings.enableLinting,
                   }}
+                  onLintErrors={handleLintErrors}
                 />
               )}
               {activeTab === 'javascript' && (
@@ -712,7 +825,9 @@ return (
                     wordWrap: editorSettings.wordWrap,
                     minimap: { enabled: false },
                     lineNumbers: editorSettings.lineNumbers ? 'on' : 'off',
+                    enableLinting: editorSettings.enableLinting,
                   }}
+                  onLintErrors={handleLintErrors}
                 />
               )}
             </div>
@@ -732,16 +847,27 @@ return (
               <div className="preview-container">
                 <div className="preview-header">
                   <span>Preview</span>
-                  <button 
-                    onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-                    className="console-toggle-btn"
-                    title={isConsoleOpen ? "Hide Console" : "Show Console"}
-                  >
-                    <i className={`fa fa-terminal ${isConsoleOpen ? 'console-active' : ''}`}></i>
-                  </button>
+                  <div className="preview-controls">
+                    <PreviewModes onModeChange={setPreviewMode} currentMode={previewMode} />
+                    <button 
+                      onClick={() => setIsLibraryPickerOpen(true)}
+                      className="preview-control-btn"
+                      title="Add Libraries"
+                    >
+                      <i className="fa fa-book"></i>
+                    </button>
+                    <button 
+                      onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                      className="console-toggle-btn"
+                      title={isConsoleOpen ? "Hide Console" : "Show Console"}
+                    >
+                      <i className={`fa fa-terminal ${isConsoleOpen ? 'console-active' : ''}`}></i>
+                    </button>
+                  </div>
                 </div>
-                <div className="preview-content">
+                <div className="preview-content" style={{ width: previewMode.width, height: previewMode.height, maxWidth: '100%', maxHeight: '100%' }}>
                   <Preview srcDoc={createSrcDoc(debouncedHtml, debouncedCss, debouncedJs)} ref={iframeRef} />
+                  <PerformanceMonitor iframeRef={iframeRef} />
                 </div>
               </div>
               
@@ -855,6 +981,33 @@ return (
         templates={templates}
         onSelectTemplate={applyTemplate}
         onClose={() => setIsTemplateOpen(false)}
+      />
+    )}
+
+    {/* Library Picker */}
+    {isLibraryPickerOpen && (
+      <LibraryPicker
+        selectedLibraries={selectedLibraries}
+        onLibrariesChange={setSelectedLibraries}
+        onClose={() => setIsLibraryPickerOpen(false)}
+      />
+    )}
+
+    {/* Snippet Library */}
+    {isSnippetLibraryOpen && (
+      <SnippetLibrary
+        language={activeTab}
+        onInsert={handleInsertSnippet}
+        onClose={() => setIsSnippetLibraryOpen(false)}
+      />
+    )}
+
+    {/* Code Diff Viewer */}
+    {isDiffViewerOpen && diffVersions.old && diffVersions.new && (
+      <CodeDiffViewer
+        oldCode={diffVersions.old}
+        newCode={diffVersions.new}
+        onClose={() => setIsDiffViewerOpen(false)}
       />
     )}
 
