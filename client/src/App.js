@@ -212,7 +212,8 @@ echo "Hello, LiveCode!";
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [consoleLogs, setConsoleLogs] = useState([]);
-  const [isConsoleOpen, setIsConsoleOpen] = useState(true);
+  // Start console closed by default; open when logs arrive
+  const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [pingResult, setPingResult] = useState('');
 
   // Refs
@@ -253,26 +254,7 @@ echo "Hello, LiveCode!";
           min-height: 100vh;
         }
         
-        /* Console styles */
-        #console {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 200px;
-          background-color: var(--console-bg);
-          color: var(--console-text);
-          border-top: 1px solid var(--console-border);
-          overflow-y: auto;
-          padding: 0.5rem;
-          font-family: monospace;
-          font-size: 14px;
-        }
-        
-        .console-log { color: ${isDark ? '#a0aec0' : '#4a5568'}; }
-        .console-error { color: #f56565; }
-        .console-warn { color: #ecc94b; }
-        .console-info { color: #63b3ed; }
+        /* In-iframe console removed: parent app receives console messages via postMessage */
       </style>
     `;
     
@@ -293,8 +275,7 @@ echo "Hello, LiveCode!";
       </head>
       <body class="${isDark ? 'dark' : ''}">
         ${htmlContent}
-        ${scriptLibraries}
-        <div id="console"></div>
+  ${scriptLibraries}
         <script>
           // Override console methods to send messages to parent window
           const originalConsole = {
@@ -641,7 +622,15 @@ echo "Hello, LiveCode!";
   // Clear console
   const clearConsole = () => {
     setConsoleLogs([]);
+    setIsConsoleOpen(false);
   };
+
+  // Auto-open console when logs arrive
+  useEffect(() => {
+    if (consoleLogs && consoleLogs.length > 0) {
+      setIsConsoleOpen(true);
+    }
+  }, [consoleLogs]);
 
   // Minify code
   const minifyCode = async () => {
