@@ -18,19 +18,27 @@ import { PerformanceMonitor } from './components/PerformanceMonitor';
 import { CodeDiffViewer } from './components/CodeDiffViewer';
 import { LibraryPicker } from './components/LibraryPicker';
 import { SnippetLibrary } from './components/SnippetLibrary';
+import { LanguageSelector } from './components/LanguageSelector';
 import { templates } from './utils/templates';
 import { createGist, fetchGist } from './utils/gist';
 import { minifyAll } from './utils/minifier';
 import { exportAsScreenshot, exportAsPDF } from './utils/exportFormats';
 import './styles/custom.css';
+import './styles/languageSelector.css';
 
-const editorTabs = [
+// All available languages
+const ALL_LANGUAGES = [
   { label: 'HTML', lang: 'html', icon: 'html5' },
   { label: 'CSS', lang: 'css', icon: 'css3' },
   { label: 'JS', lang: 'javascript', icon: 'js' },
   { label: 'Java', lang: 'java', icon: 'java' },
   { label: 'PHP', lang: 'php', icon: 'php' },
 ];
+
+// Get editor tabs based on selected languages
+const getEditorTabs = (selectedLanguages) => {
+  return ALL_LANGUAGES.filter(lang => selectedLanguages.includes(lang.lang));
+};
 
 export default function App() {
   // Theme state
@@ -83,6 +91,33 @@ echo "Hello, LiveCode!";
   const [isDiffViewerOpen, setIsDiffViewerOpen] = useState(false);
   const [diffVersions, setDiffVersions] = useState({ old: null, new: null });
   const [lintErrors, setLintErrors] = useState([]);
+  
+  // Language selector state
+  const [selectedLanguages, setSelectedLanguages] = useState(() => {
+    const saved = localStorage.getItem('selectedLanguages');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    // Default: HTML, CSS, JS
+    return ['html', 'css', 'javascript'];
+  });
+  const [isLanguageSelectorOpen, setIsLanguageSelectorOpen] = useState(false);
+  
+  // Get editor tabs based on selected languages
+  const editorTabs = getEditorTabs(selectedLanguages);
+  
+  // Ensure activeTab is valid when languages change
+  useEffect(() => {
+    if (!selectedLanguages.includes(activeTab)) {
+      // Switch to first available language
+      setActiveTab(selectedLanguages[0] || 'html');
+    }
+  }, [selectedLanguages]);
+  
+  // Save selected languages to localStorage
+  useEffect(() => {
+    localStorage.setItem('selectedLanguages', JSON.stringify(selectedLanguages));
+  }, [selectedLanguages]);
 
   // UI state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -694,6 +729,7 @@ return (
       onExportPDF={handleExportPDF}
       onSnippetLibrary={() => setIsSnippetLibraryOpen(true)}
       onLibraryPicker={() => setIsLibraryPickerOpen(true)}
+      onLanguageSelector={() => setIsLanguageSelectorOpen(true)}
     />
 
     {/* Main Content - Split Horizontally */}
@@ -1113,6 +1149,15 @@ return (
         oldCode={diffVersions.old}
         newCode={diffVersions.new}
         onClose={() => setIsDiffViewerOpen(false)}
+      />
+    )}
+
+    {/* Language Selector */}
+    {isLanguageSelectorOpen && (
+      <LanguageSelector
+        selectedLanguages={selectedLanguages}
+        onLanguagesChange={setSelectedLanguages}
+        onClose={() => setIsLanguageSelectorOpen(false)}
       />
     )}
 

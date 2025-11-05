@@ -15,7 +15,8 @@ export function Navbar({
   onExportScreenshot,
   onExportPDF,
   onSnippetLibrary,
-  onLibraryPicker
+  onLibraryPicker,
+  onLanguageSelector
 }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -106,6 +107,10 @@ export function Navbar({
           
           <button onClick={onLibraryPicker} className="navbar-button" title="Add Libraries">
             <i className="fa fa-book"></i> {(!isMobile || isMenuOpen) && 'Libraries'}
+          </button>
+          
+          <button onClick={onLanguageSelector} className="navbar-button" title="Select Languages">
+            <i className="fa fa-language"></i> {(!isMobile || isMenuOpen) && 'Languages'}
           </button>
         </div>
         
