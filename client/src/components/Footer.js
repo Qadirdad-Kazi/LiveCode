@@ -55,17 +55,6 @@ export function Footer() {
             <i className="fas fa-question-circle" style={{ marginRight: '0.25rem' }}></i>
             <span>Help</span>
           </a>
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={{ 
-            color: '#4b5563', 
-            display: 'flex', 
-            alignItems: 'center',
-            textDecoration: 'none',
-            transition: 'color 0.2s ease'
-          }} onMouseOver={(e) => e.currentTarget.style.color = '#2563eb'} 
-             onMouseOut={(e) => e.currentTarget.style.color = '#4b5563'}>
-            <i className="fab fa-github" style={{ marginRight: '0.25rem' }}></i>
-            <span>GitHub</span>
-          </a>
         </div>
         
         <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.75rem' }}>

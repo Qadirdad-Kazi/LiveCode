@@ -4,7 +4,6 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -138,50 +137,6 @@ app.get('/', (req, res) => {
 // Test endpoint for connectivity
 app.get('/ping', (req, res) => {
   res.json({ message: 'pong' });
-});
-
-// Gist endpoints (requires GITHUB_TOKEN in env for authenticated operations)
-app.post('/gists', async (req, res) => {
-  try {
-    const githubToken = process.env.GITHUB_TOKEN;
-    if (!githubToken) {
-      return res.status(400).json({ message: 'GITHUB_TOKEN not configured on server' });
-    }
-
-    const { snippetId, html, css, js, title, description, public: isPublic = false } = req.body;
-
-    let snippetPayload = { html: html || '', css: css || '', js: js || '', title: title || 'LiveCode Snippet', description: description || '' };
-
-    if (snippetId) {
-      const found = snippetsData.find(s => s.id === snippetId);
-      if (!found) return res.status(404).json({ message: 'Snippet not found' });
-      snippetPayload = { html: found.html, css: found.css, js: found.js, title: found.title, description: found.description };
-    }
-
-    const files = {};
-    files['index.html'] = { content: `<!-- ${snippetPayload.title} -->\n${snippetPayload.html}` };
-  files['style.css'] = { content: snippetPayload.css };
-  files['script.js'] = { content: snippetPayload.js };
-
-    // Create gist request body
-    const gistBody = {
-      description: snippetPayload.description || snippetPayload.title,
-      public: !!isPublic,
-      files
-    };
-
-    const response = await axios.post('https://api.github.com/gists', gistBody, {
-      headers: {
-        Authorization: `token ${githubToken}`,
-        'User-Agent': 'LiveCode-App'
-      }
-    });
-
-    return res.status(201).json(response.data);
-  } catch (error) {
-    console.error('Error creating gist:', error?.response?.data || error.message);
-    return res.status(500).json({ message: 'Failed to create gist', error: error?.response?.data || error.message });
-  }
 });
 
 // Java execution endpoints
@@ -332,41 +287,6 @@ app.post('/execute/php', (req, res) => {
       error: stderr || null
     });
   });
-});
-
-// Import gist by ID and create a snippet from it
-app.get('/gists/:gistId', async (req, res) => {
-  try {
-    const gistId = req.params.gistId;
-    const response = await axios.get(`https://api.github.com/gists/${gistId}`, {
-      headers: { 'User-Agent': 'LiveCode-App' }
-    });
-
-    const gist = response.data;
-    const files = gist.files || {};
-    const html = files['index.html']?.content || files['index.htm']?.content || '';
-    const css = files['style.css']?.content || '';
-    const js = files['script.js']?.content || '';
-
-    const newSnippet = {
-      id: Date.now().toString(),
-      title: gist.description || `Imported gist ${gistId}`,
-      description: gist.description || '',
-      html,
-      css,
-      js,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    snippetsData.push(newSnippet);
-    saveData();
-
-    res.json(newSnippet);
-  } catch (error) {
-    console.error('Error importing gist:', error?.response?.data || error.message);
-    res.status(500).json({ message: 'Failed to import gist', error: error?.response?.data || error.message });
-  }
 });
 
 // Start listening when run directly (keeps app usable by tests when required)
