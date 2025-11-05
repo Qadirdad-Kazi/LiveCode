@@ -1,29 +1,32 @@
 import React from "react";
 
 export function ConsoleOutput({ logs }) {
-  if (!logs || !logs.length) return <div className="text-gray-500 italic">No console output</div>;
+  if (!logs || !logs.length) {
+    return (
+      <div style={{
+        padding: '2rem',
+        textAlign: 'center',
+        color: 'var(--text-tertiary)',
+        fontStyle: 'italic',
+        fontSize: '0.875rem'
+      }}>
+        No console output
+      </div>
+    );
+  }
+  
   return (
-    <div className="font-mono text-xs overflow-y-auto">
+    <div className="console-output">
       {logs.map((log, i) => {
-        let className = "";
-        switch (log.type) {
-          case "error":
-            className = "text-red-400";
-            break;
-          case "warn":
-            className = "text-yellow-400";
-            break;
-          case "info":
-            className = "text-blue-400";
-            break;
-          default:
-            className = "text-green-300";
-        }
+        let typeClass = `console-log-item ${log.type}`;
         
         return (
-          <div key={i} className={className}>
+          <div key={i} className={typeClass}>
+            <span style={{ fontWeight: 600, marginRight: '0.5rem' }}>
+              [{log.type.toUpperCase()}]
+            </span>
             {Array.isArray(log.data) 
-              ? log.data.map(item => 
+              ? log.data.map((item, idx) => 
                   typeof item === 'object' 
                     ? JSON.stringify(item, null, 2) 
                     : String(item)

@@ -24,6 +24,8 @@ import { createGist, fetchGist } from './utils/gist';
 import { minifyAll } from './utils/minifier';
 import { exportAsScreenshot, exportAsPDF } from './utils/exportFormats';
 import './styles/custom.css';
+import './styles/modern-ui.css';
+import './styles/components.css';
 import './styles/languageSelector.css';
 
 // All available languages

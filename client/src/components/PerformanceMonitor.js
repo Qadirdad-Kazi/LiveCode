@@ -80,7 +80,7 @@ export function PerformanceMonitor({ iframeRef }) {
   return (
     <div className="performance-monitor">
       <div className="performance-header">
-        <i className="fa fa-tachometer-alt"></i>
+        <i className="fa fa-tachometer-alt" style={{ fontSize: '0.875rem' }}></i>
         <span>Performance</span>
       </div>
       <div className="performance-metrics">

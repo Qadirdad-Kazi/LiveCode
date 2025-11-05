@@ -34,9 +34,6 @@ export function PreviewModes({ onModeChange, currentMode }) {
 
   return (
     <div className="preview-modes-container">
-      <div className="preview-modes-header">
-        <span>Preview Size</span>
-      </div>
       <div className="preview-modes-grid">
         {PREVIEW_MODES.map(mode => (
           <button
@@ -54,27 +51,43 @@ export function PreviewModes({ onModeChange, currentMode }) {
         <div className="custom-size-picker">
           <div className="custom-size-inputs">
             <div>
-              <label>Width (px)</label>
+              <label style={{
+                display: 'block',
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                color: 'var(--text-secondary)',
+                marginBottom: '0.25rem'
+              }}>Width (px)</label>
               <input
                 type="number"
                 value={customWidth}
                 onChange={(e) => setCustomWidth(e.target.value)}
                 min="100"
                 max="5000"
+                className="custom-library-input"
+                style={{ marginBottom: 0 }}
               />
             </div>
             <div>
-              <label>Height (px)</label>
+              <label style={{
+                display: 'block',
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                color: 'var(--text-secondary)',
+                marginBottom: '0.25rem'
+              }}>Height (px)</label>
               <input
                 type="number"
                 value={customHeight}
                 onChange={(e) => setCustomHeight(e.target.value)}
                 min="100"
                 max="5000"
+                className="custom-library-input"
+                style={{ marginBottom: 0 }}
               />
             </div>
           </div>
-          <button onClick={handleCustomApply} className="apply-custom-btn">
+          <button onClick={handleCustomApply} className="add-custom-btn" style={{ marginTop: '0.75rem' }}>
             Apply
           </button>
         </div>
