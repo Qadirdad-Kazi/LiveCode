@@ -66,10 +66,10 @@ app.get('/snippets/:id', (req, res) => {
 });
 
 app.post('/snippets', (req, res) => {
-  const { html, css, js, java, title, description } = req.body;
+  const { html, css, js, java, php, title, description } = req.body;
   
-  if (!html && !css && !js && !java) {
-    return res.status(400).json({ message: 'At least one of html, css, js, or java is required' });
+  if (!html && !css && !js && !java && !php) {
+    return res.status(400).json({ message: 'At least one of html, css, js, java, or php is required' });
   }
   
   const newSnippet = {
@@ -80,6 +80,7 @@ app.post('/snippets', (req, res) => {
     css: css || '',
     js: js || '',
     java: java || '',
+    php: php || '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -91,7 +92,7 @@ app.post('/snippets', (req, res) => {
 });
 
 app.put('/snippets/:id', (req, res) => {
-  const { html, css, js, java, title, description } = req.body;
+  const { html, css, js, java, php, title, description } = req.body;
   const index = snippetsData.findIndex(s => s.id === req.params.id);
   
   if (index === -1) {
@@ -106,6 +107,7 @@ app.put('/snippets/:id', (req, res) => {
     css: css !== undefined ? css : snippetsData[index].css,
     js: js !== undefined ? js : snippetsData[index].js,
     java: java !== undefined ? java : snippetsData[index].java,
+    php: php !== undefined ? php : snippetsData[index].php,
     updatedAt: new Date().toISOString()
   };
   
@@ -288,6 +290,46 @@ app.post('/execute/java', (req, res) => {
         output: execStdout,
         error: execStderr || null
       });
+    });
+  });
+});
+
+// PHP execution endpoint
+app.post('/execute/php', (req, res) => {
+  const { code } = req.body;
+  
+  if (!code) {
+    return res.status(400).json({ message: 'PHP code is required' });
+  }
+
+  const tempDir = path.join(__dirname, 'temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+
+  const phpFilePath = path.join(tempDir, `script_${Date.now()}.php`);
+  fs.writeFileSync(phpFilePath, code);
+
+  // Execute PHP code
+  exec(`php ${phpFilePath}`, { timeout: 5000 }, (error, stdout, stderr) => {
+    // Clean up
+    if (fs.existsSync(phpFilePath)) {
+      fs.unlinkSync(phpFilePath);
+    }
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        error: stderr || error.message,
+        output: stdout,
+        type: 'execution'
+      });
+    }
+
+    res.json({
+      success: true,
+      output: stdout,
+      error: stderr || null
     });
   });
 });

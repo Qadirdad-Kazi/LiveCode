@@ -260,6 +260,156 @@ for (String item : list) {
 }`,
       category: 'Control Flow'
     }
+  ],
+  php: [
+    {
+      id: 'php-hello',
+      name: 'Hello World',
+      code: `<?php
+echo "Hello, World!";
+?>`,
+      category: 'Basics'
+    },
+    {
+      id: 'php-variables',
+      name: 'Variables',
+      code: `<?php
+$name = "John";
+$age = 25;
+$price = 99.99;
+$isActive = true;
+?>`,
+      category: 'Basics'
+    },
+    {
+      id: 'php-array',
+      name: 'Array',
+      code: `<?php
+$numbers = [1, 2, 3, 4, 5];
+$names = array("John", "Jane", "Bob");
+
+foreach ($numbers as $number) {
+    echo $number . "\\n";
+}
+?>`,
+      category: 'Data Structures'
+    },
+    {
+      id: 'php-associative-array',
+      name: 'Associative Array',
+      code: `<?php
+$person = [
+    "name" => "John",
+    "age" => 25,
+    "city" => "New York"
+];
+
+echo $person["name"];
+?>`,
+      category: 'Data Structures'
+    },
+    {
+      id: 'php-function',
+      name: 'Function',
+      code: `<?php
+function greet($name) {
+    return "Hello, " . $name . "!";
+}
+
+echo greet("John");
+?>`,
+      category: 'Functions'
+    },
+    {
+      id: 'php-class',
+      name: 'Class',
+      code: `<?php
+class Person {
+    private $name;
+    private $age;
+    
+    public function __construct($name, $age) {
+        $this->name = $name;
+        $this->age = $age;
+    }
+    
+    public function getName() {
+        return $this->name;
+    }
+}
+?>`,
+      category: 'OOP'
+    },
+    {
+      id: 'php-if',
+      name: 'If-Else',
+      code: `<?php
+if ($condition) {
+    // Code block
+} elseif ($anotherCondition) {
+    // Code block
+} else {
+    // Code block
+}
+?>`,
+      category: 'Control Flow'
+    },
+    {
+      id: 'php-for',
+      name: 'For Loop',
+      code: `<?php
+for ($i = 0; $i < 10; $i++) {
+    echo $i . "\\n";
+}
+?>`,
+      category: 'Control Flow'
+    },
+    {
+      id: 'php-foreach',
+      name: 'Foreach Loop',
+      code: `<?php
+$items = ["apple", "banana", "orange"];
+
+foreach ($items as $item) {
+    echo $item . "\\n";
+}
+?>`,
+      category: 'Control Flow'
+    },
+    {
+      id: 'php-switch',
+      name: 'Switch Statement',
+      code: `<?php
+switch ($value) {
+    case 1:
+        echo "One";
+        break;
+    case 2:
+        echo "Two";
+        break;
+    default:
+        echo "Other";
+}
+?>`,
+      category: 'Control Flow'
+    },
+    {
+      id: 'php-database',
+      name: 'Database Connection',
+      code: `<?php
+$servername = "localhost";
+$username = "username";
+$password = "password";
+$dbname = "database";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+?>`,
+      category: 'Database'
+    }
   ]
 };
 

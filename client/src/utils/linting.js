@@ -152,6 +152,77 @@ export async function lintJava(code) {
   return errors;
 }
 
+// Basic PHP linting
+export async function lintPHP(code) {
+  const errors = [];
+  const lines = code.split('\n');
+  
+  lines.forEach((line, index) => {
+    const lineNum = index + 1;
+    const trimmedLine = line.trim();
+    
+    // Check for missing semicolons
+    if (trimmedLine && 
+        !trimmedLine.endsWith(';') && 
+        !trimmedLine.endsWith('{') && 
+        !trimmedLine.endsWith('}') &&
+        !trimmedLine.startsWith('//') &&
+        !trimmedLine.startsWith('/*') &&
+        !trimmedLine.startsWith('*') &&
+        !trimmedLine.startsWith('<?php') &&
+        !trimmedLine.startsWith('?>') &&
+        !trimmedLine.startsWith('if') &&
+        !trimmedLine.startsWith('for') &&
+        !trimmedLine.startsWith('while') &&
+        !trimmedLine.startsWith('foreach') &&
+        !trimmedLine.startsWith('function') &&
+        !trimmedLine.startsWith('class') &&
+        trimmedLine.includes('=') &&
+        !trimmedLine.includes('=>')) {
+      errors.push({
+        severity: 'warning',
+        message: 'Missing semicolon',
+        line: lineNum,
+        column: line.length
+      });
+    }
+    
+    // Check for common typos
+    if (line.includes('ech')) {
+      errors.push({
+        severity: 'error',
+        message: "Typo: 'ech' should be 'echo'",
+        line: lineNum,
+        column: line.indexOf('ech')
+      });
+    }
+    
+    // Check for unclosed brackets
+    const openBraces = (line.match(/\{/g) || []).length;
+    const closeBraces = (line.match(/\}/g) || []).length;
+    if (Math.abs(openBraces - closeBraces) > 0) {
+      errors.push({
+        severity: 'warning',
+        message: 'Possible unclosed brace',
+        line: lineNum,
+        column: 1
+      });
+    }
+    
+    // Check for unclosed PHP tags
+    if (trimmedLine.includes('<?php') && !code.includes('?>')) {
+      errors.push({
+        severity: 'info',
+        message: 'PHP opening tag found but closing tag ?> not found',
+        line: lineNum,
+        column: 1
+      });
+    }
+  });
+  
+  return errors;
+}
+
 // Lint HTML (basic validation)
 export function lintHTML(code) {
   const errors = [];

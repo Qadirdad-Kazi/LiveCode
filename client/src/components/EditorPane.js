@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, lazy, Suspense } from "react";
-import { lintJavaScript, lintCSS, lintHTML, lintJava } from "../utils/linting";
+import { lintJavaScript, lintCSS, lintHTML, lintJava, lintPHP } from "../utils/linting";
 
 // Lazy-load Monaco so we can gracefully fallback if it fails to load
 const MonacoEditor = lazy(() => import("@monaco-editor/react"));
@@ -70,6 +70,8 @@ export function EditorPane({ language, value, onChange, theme, options = {}, onL
           errors = lintHTML(value);
         } else if (language === 'java') {
           errors = await lintJava(value);
+        } else if (language === 'php') {
+          errors = await lintPHP(value);
         }
 
         // Update Monaco editor markers

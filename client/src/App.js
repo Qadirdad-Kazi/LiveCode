@@ -29,6 +29,7 @@ const editorTabs = [
   { label: 'CSS', lang: 'css', icon: 'css3' },
   { label: 'JS', lang: 'javascript', icon: 'js' },
   { label: 'Java', lang: 'java', icon: 'java' },
+  { label: 'PHP', lang: 'php', icon: 'php' },
 ];
 
 export default function App() {
@@ -58,6 +59,9 @@ export default function App() {
         System.out.println("Hello, LiveCode!");
     }
 }`);
+  const [php, setPhp] = useState(`<?php
+echo "Hello, LiveCode!";
+?>`);
 
   // Editor settings
   const [editorSettings, setEditorSettings] = useState({
@@ -173,6 +177,7 @@ export default function App() {
     if (activeTab === 'html') return html;
     if (activeTab === 'css') return css;
     if (activeTab === 'java') return java;
+    if (activeTab === 'php') return php;
     return js;
   };
 
@@ -206,6 +211,7 @@ export default function App() {
     if (activeTab === 'html') setHtml(value || '');
     else if (activeTab === 'css') setCss(value || '');
     else if (activeTab === 'java') setJava(value || '');
+    else if (activeTab === 'php') setPhp(value || '');
     else setJs(value || '');
     
     // Clear previous timer if it exists
@@ -222,7 +228,7 @@ export default function App() {
   // Version history management
   const addToVersionHistory = () => {
     // Only add to history if there are changes
-    const newVersion = { html, css, js, java, timestamp: new Date().toISOString() };
+    const newVersion = { html, css, js, java, php, timestamp: new Date().toISOString() };
 
     // Remove any future versions if we're not at the latest version
     const updatedVersions = versionHistory.slice(0, currentVersionIndex + 1);
@@ -243,6 +249,7 @@ export default function App() {
       setCss(version.css || '');
       setJs(version.js || '');
       setJava(version.java || '');
+      setPhp(version.php || '');
       setCurrentVersionIndex(index);
     }
   };
@@ -286,6 +293,13 @@ export default function App() {
         setConsoleLogs(prev => [...prev, { 
           type: 'info', 
           data: ['Java formatting is not available. Use your IDE for Java formatting.'] 
+        }]);
+        return;
+      } else if (activeTab === 'php') {
+        // PHP doesn't have a Prettier parser, show message
+        setConsoleLogs(prev => [...prev, { 
+          type: 'info', 
+          data: ['PHP formatting is not available. Use your IDE for PHP formatting.'] 
         }]);
         return;
       } else {
@@ -445,6 +459,7 @@ ${html}
           css,
           js,
           java,
+          php,
           title: prompt('Enter a title for your snippet:', 'My LiveCode Snippet'),
           description: prompt('Enter a description (optional):', ''),
         }),
@@ -483,6 +498,7 @@ ${html}
         setCss(data.css || '');
         setJs(data.js || '');
         setJava(data.java || '');
+        setPhp(data.php || '');
         
         setPingResult(`Snippet loaded: ${data.title}`);
         setTimeout(() => setPingResult(''), 3000);
@@ -535,12 +551,16 @@ ${html}
         System.out.println("Hello, LiveCode!");
     }
 }`;
+    const defaultPhp = `<?php
+echo "Hello, LiveCode!";
+?>`;
     
     // Confirm with user if there are changes
     if (html !== '<h1>Hello, LiveCode!</h1>\n<p>Start coding here!</p>' || 
         css !== 'body {\n  font-family: sans-serif;\n  margin: 0;\n  padding: 20px;\n}\n\nh1 {\n  color: #333;\n}' || 
         js !== 'console.log("Hello from LiveCode!");' ||
-        java !== defaultJava) {
+        java !== defaultJava ||
+        php !== defaultPhp) {
       if (!confirm('Create a new snippet? Your current changes will be saved to version history.')) {
         return;
       }
@@ -554,6 +574,7 @@ ${html}
     setCss('body {\n  font-family: sans-serif;\n  margin: 0;\n  padding: 20px;\n}\n\nh1 {\n  color: #333;\n}');
     setJs('console.log("Hello from LiveCode!");');
     setJava(defaultJava);
+    setPhp(defaultPhp);
     
     // Clear console logs
     setConsoleLogs([]);
@@ -631,6 +652,9 @@ ${html}
         } else if (e.key === '4') {
           e.preventDefault();
           setActiveTab('java');
+        } else if (e.key === '5') {
+          e.preventDefault();
+          setActiveTab('php');
         }
       }
       
@@ -738,6 +762,15 @@ return (
                   language="java"
                   value={java}
                   onChange={setJava}
+                  theme={editorSettings.theme}
+                  options={editorSettings}
+                />
+              )}
+              {activeTab === 'php' && (
+                <EditorPane
+                  language="php"
+                  value={php}
+                  onChange={setPhp}
                   theme={editorSettings.theme}
                   options={editorSettings}
                 />
@@ -873,6 +906,23 @@ return (
                   language="java"
                   value={java}
                   onChange={setJava}
+                  theme={editorSettings.theme}
+                  options={{
+                    fontSize: editorSettings.fontSize,
+                    tabSize: editorSettings.tabSize,
+                    wordWrap: editorSettings.wordWrap,
+                    minimap: { enabled: false },
+                    lineNumbers: editorSettings.lineNumbers ? 'on' : 'off',
+                    enableLinting: editorSettings.enableLinting,
+                  }}
+                  onLintErrors={handleLintErrors}
+                />
+              )}
+              {activeTab === 'php' && (
+                <EditorPane
+                  language="php"
+                  value={php}
+                  onChange={setPhp}
                   theme={editorSettings.theme}
                   options={{
                     fontSize: editorSettings.fontSize,
@@ -1023,7 +1073,7 @@ return (
         keyboardShortcuts={[
           { key: 'Ctrl/Cmd + S', description: 'Save snippet' },
           { key: 'Ctrl/Cmd + Enter', description: 'Run code / Refresh preview' },
-          { key: 'Ctrl/Cmd + 1/2/3/4', description: 'Switch to HTML/CSS/JS/Java tabs' },
+          { key: 'Ctrl/Cmd + 1/2/3/4/5', description: 'Switch to HTML/CSS/JS/Java/PHP tabs' },
           { key: 'Ctrl/Cmd + B', description: 'Toggle console' },
           { key: 'Ctrl/Cmd + D', description: 'Toggle dark mode' }
         ]}
