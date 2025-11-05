@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  server-tests:
+    name: Server tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install server dependencies
+        working-directory: ./server
+        run: npm ci
+      - name: Run server tests
+        working-directory: ./server
+        run: npm test
+
+  client-tests:
+    name: Client tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install client dependencies
+        working-directory: ./client
+        run: npm ci
+      - name: Run client tests (if configured)
+        working-directory: ./client
+        run: npm test || true

@@ -14,6 +14,7 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { TemplateSelector } from './components/TemplateSelector';
 import { Footer } from './components/Footer';
 import { templates } from './utils/templates';
+import { createGist, fetchGist } from './utils/gist';
 import './styles/custom.css';
 
 const editorTabs = [
@@ -371,6 +372,39 @@ ${html}
       alert('Failed to load snippet. Please try again.');
     }
   };
+
+  // Save current snippet to GitHub Gist via server
+  const saveToGist = async () => {
+    try {
+      const makePublic = confirm('Make this gist public? (Cancel for private)');
+      const payload = { html, css, js, title: prompt('Gist title:', 'LiveCode snippet'), public: makePublic };
+      const data = await createGist(payload);
+      setPingResult(`Gist created: ${data.html_url || data.id}`);
+      setTimeout(() => setPingResult(''), 4000);
+    } catch (err) {
+      console.error('Failed to create gist', err);
+      alert('Failed to create gist. Check server config and GITHUB_TOKEN.');
+    }
+  };
+
+  // Import a gist by ID and load into editor
+  const importFromGist = async () => {
+    try {
+      const gistId = prompt('Enter Gist ID to import:');
+      if (!gistId) return;
+      const snippet = await fetchGist(gistId);
+      // Save current to history before importing
+      addToVersionHistory();
+      setHtml(snippet.html || '');
+      setCss(snippet.css || '');
+      setJs(snippet.js || '');
+      setPingResult(`Imported gist: ${snippet.title}`);
+      setTimeout(() => setPingResult(''), 4000);
+    } catch (err) {
+      console.error('Failed to import gist', err);
+      alert('Failed to import gist. Make sure the ID is correct.');
+    }
+  };
   
   // Create new snippet
   const createNewSnippet = () => {
@@ -493,6 +527,8 @@ return (
       onReset={resetCode}
       onExport={exportAsZip}
       onSave={saveSnippet}
+      onSaveToGist={saveToGist}
+      onImportFromGist={importFromGist}
       onTemplateClick={() => setIsTemplateOpen(true)}
       onSettingsClick={() => setIsSettingsOpen(true)}
       onToggleDarkMode={toggleDarkMode}

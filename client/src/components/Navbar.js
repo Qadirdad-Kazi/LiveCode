@@ -6,6 +6,8 @@ export function Navbar({
   onExport,
   onSave,
   onReset,
+  onSaveToGist,
+  onImportFromGist,
   isDarkMode,
   onToggleDarkMode,
   toggleTheme
@@ -63,6 +65,14 @@ export function Navbar({
           
           <button onClick={() => handleNavClick(onSave)} className="navbar-button">
             <i className="fa fa-save"></i> {!isMobile && 'Save'}
+          </button>
+
+          <button onClick={() => { if (onSaveToGist) onSaveToGist(); }} className="navbar-button">
+            <i className="fa fa-github"></i> {!isMobile && 'Save to Gist'}
+          </button>
+
+          <button onClick={() => { if (onImportFromGist) onImportFromGist(); }} className="navbar-button">
+            <i className="fa fa-download"></i> {!isMobile && 'Import Gist'}
           </button>
           
           <button onClick={onTemplateClick} className="navbar-button">
