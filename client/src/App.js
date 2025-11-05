@@ -14,7 +14,6 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { TemplateSelector } from './components/TemplateSelector';
 import { Footer } from './components/Footer';
 import { PreviewModes } from './components/PreviewModes';
-import { PerformanceMonitor } from './components/PerformanceMonitor';
 import { CodeDiffViewer } from './components/CodeDiffViewer';
 import { LibraryPicker } from './components/LibraryPicker';
 import { SnippetLibrary } from './components/SnippetLibrary';
@@ -41,23 +40,67 @@ const getEditorTabs = (selectedLanguages) => {
   return ALL_LANGUAGES.filter(lang => selectedLanguages.includes(lang.lang));
 };
 
+// Theme application function (moved outside component to avoid initialization issues)
+const applyTheme = (isDark, setEditorSettings) => {
+  const root = document.documentElement;
+  if (isDark) {
+    root.classList.add('dark');
+    root.style.colorScheme = 'dark';
+    document.body.classList.add('dark');
+  } else {
+    root.classList.remove('dark');
+    root.style.colorScheme = 'light';
+    document.body.classList.remove('dark');
+  }
+  // Update Monaco editor theme if setEditorSettings is provided
+  if (setEditorSettings) {
+    setEditorSettings(prev => ({
+      ...prev,
+      theme: isDark ? 'vs-dark' : 'vs-light'
+    }));
+  } else {
+    // Fallback for initial theme application before setEditorSettings is available
+    const monaco = window.monaco;
+    if (monaco) {
+      monaco.editor.setTheme(isDark ? 'vs-dark' : 'vs-light');
+    }
+  }
+};
+
 export default function App() {
-  // Theme state
+  // Initialize theme state
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check for saved theme first, then system preference
     const savedTheme = localStorage.getItem('livecode-theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialMode = savedTheme ? savedTheme === 'dark' : prefersDark;
+    const initialDarkMode = savedTheme ? savedTheme === 'dark' : prefersDark;
     
-    // Apply theme class immediately to prevent flash of light theme
-    if (initialMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // Apply initial theme (without editor settings for now)
+    applyTheme(initialDarkMode);
     
-    return initialMode;
+    return initialDarkMode;
   });
+  
+  // Set up theme change listener after component mounts
+  useEffect(() => {
+    // Apply theme with editor settings
+    applyTheme(isDarkMode, setEditorSettings);
+    
+    // Listen for system theme changes
+    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = (e) => {
+      if (!localStorage.getItem('livecode-theme')) {
+        const newMode = e.matches;
+        setIsDarkMode(newMode);
+        applyTheme(newMode, setEditorSettings);
+      }
+    };
+    
+    darkModeMediaQuery.addListener(handleSystemThemeChange);
+    
+    // Cleanup listener on component unmount
+    return () => darkModeMediaQuery.removeListener(handleSystemThemeChange);
+  }, [isDarkMode]);
   // Editor content state
   const [activeTab, setActiveTab] = useState('html');
   const [html, setHtml] = useState('<h1>Hello, LiveCode!</h1>\n<p>Start coding here!</p>');
@@ -84,8 +127,49 @@ echo "Hello, LiveCode!";
     enableLinting: true
   });
 
-  // New feature states
-  const [previewMode, setPreviewMode] = useState({ name: 'Desktop', width: '100%', height: '100%' });
+  // UI State
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+  const [previewMode, setPreviewMode] = useState({
+    name: 'Desktop',
+    width: '100%',
+    height: '100%',
+    icon: 'fa-desktop'
+  });
+  
+  // Calculate preview container styles based on selected mode
+  const getPreviewContainerStyle = () => {
+    if (previewMode.name === 'Desktop') {
+      return {
+        width: '100%',
+        height: '100%',
+        margin: 0,
+        padding: 0,
+        border: 'none',
+        borderRadius: 0,
+        boxShadow: 'none',
+        overflow: 'hidden',
+        position: 'relative',
+        zIndex: 1
+      };
+    }
+    
+    return {
+      width: previewMode.width,
+      height: previewMode.height,
+      margin: '0 auto',
+      overflow: 'hidden',
+      border: '1px solid var(--border-color)',
+      borderRadius: '8px',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+      position: 'relative',
+      zIndex: 1
+    };
+  };
+  
+  const previewContainerStyle = getPreviewContainerStyle();
+
   const [selectedLibraries, setSelectedLibraries] = useState([]);
   const [isLibraryPickerOpen, setIsLibraryPickerOpen] = useState(false);
   const [isSnippetLibraryOpen, setIsSnippetLibraryOpen] = useState(false);
@@ -119,11 +203,6 @@ echo "Hello, LiveCode!";
   useEffect(() => {
     localStorage.setItem('selectedLanguages', JSON.stringify(selectedLanguages));
   }, [selectedLanguages]);
-
-  // UI state
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
   
   // Version history state
   const [versionHistory, setVersionHistory] = useState(() => {
@@ -131,6 +210,7 @@ echo "Hello, LiveCode!";
     return savedHistory ? JSON.parse(savedHistory) : [];
   });
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [consoleLogs, setConsoleLogs] = useState([]);
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
   const [pingResult, setPingResult] = useState('');
@@ -139,7 +219,7 @@ echo "Hello, LiveCode!";
   const iframeRef = useRef(null);
 
   // Create sanitized source document for preview with external libraries
-  const createSrcDoc = (htmlContent, cssContent, jsContent) => {
+  const createSrcDoc = (htmlContent = html, cssContent = css, jsContent = js) => {
     // Build library imports
     const cssLibraries = selectedLibraries
       .filter(lib => lib.type === 'css')
@@ -151,61 +231,133 @@ echo "Hello, LiveCode!";
       .map(lib => `<script src="${lib.cdn}"></script>`)
       .join('\n    ');
 
+    // Add dark mode class and styles
+    const isDark = isDarkMode;
+    const darkModeStyles = `
+      <style id="dark-mode-styles">
+        :root {
+          --bg-color: ${isDark ? '#1a202c' : '#ffffff'};
+          --text-color: ${isDark ? '#f7fafc' : '#1a202c'};
+          --border-color: ${isDark ? '#4a5568' : '#e2e8f0'};
+          --console-bg: ${isDark ? '#2d3748' : '#f7fafc'};
+          --console-text: ${isDark ? '#f9fafb' : '#1a202c'};
+          --console-border: ${isDark ? '#4b5563' : '#e2e8f0'};
+        }
+        
+        body {
+          background-color: var(--bg-color);
+          color: var(--text-color);
+          transition: background-color 0.3s, color 0.3s;
+          margin: 0;
+          padding: 1rem;
+          min-height: 100vh;
+        }
+        
+        /* Console styles */
+        #console {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 200px;
+          background-color: var(--console-bg);
+          color: var(--console-text);
+          border-top: 1px solid var(--console-border);
+          overflow-y: auto;
+          padding: 0.5rem;
+          font-family: monospace;
+          font-size: 14px;
+        }
+        
+        .console-log { color: ${isDark ? '#a0aec0' : '#4a5568'}; }
+        .console-error { color: #f56565; }
+        .console-warn { color: #ecc94b; }
+        .console-info { color: #63b3ed; }
+      </style>
+    `;
+    
+    const htmlClass = isDark ? 'class="dark"' : '';
+    
     return `
       <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          ${cssLibraries}
-          <style>${DOMPurify.sanitize(cssContent)}</style>
-        </head>
-        <body>
-          ${DOMPurify.sanitize(htmlContent)}
-          ${scriptLibraries}
-          <script>
-            // Console log capture
-            const originalConsole = console;
+      <html ${htmlClass}>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LiveCode Preview</title>
+        ${cssLibraries}
+        ${darkModeStyles}
+        <style>
+          ${cssContent}
+        </style>
+      </head>
+      <body class="${isDark ? 'dark' : ''}">
+        ${htmlContent}
+        ${scriptLibraries}
+        <div id="console"></div>
+        <script>
+          // Override console methods to send messages to parent window
+          const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+          };
+          
+          function logToConsole(type, ...args) {
+            // Convert all arguments to strings
+            const messages = args.map(arg => 
+              typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            );
             
-            console = {
-              log: (...args) => {
-                originalConsole.log(...args);
-                window.parent.postMessage({ type: 'console', method: 'log', args }, '*');
-              },
-              error: (...args) => {
-                originalConsole.error(...args);
-                window.parent.postMessage({ type: 'console', method: 'error', args }, '*');
-              },
-              warn: (...args) => {
-                originalConsole.warn(...args);
-                window.parent.postMessage({ type: 'console', method: 'warn', args }, '*');
-              },
-              info: (...args) => {
-                originalConsole.info(...args);
-                window.parent.postMessage({ type: 'console', method: 'info', args }, '*');
-              }
-            };
+            // Send message to parent window
+            window.parent.postMessage({
+              type: 'console',
+              method: type,
+              data: messages.length === 1 ? messages[0] : messages
+            }, '*');
             
-            // Error handling
-            window.onerror = function(message, source, lineno, colno, error) {
-              window.parent.postMessage({
-                type: 'console',
-                method: 'error',
-                args: [message + ' (line: ' + lineno + ', col: ' + colno + ')']
-              }, '*');
-              return true;
-            };
-            
-            // User JS code
+            // Also log to the original console
+            originalConsole[type](...args);
+          }
+          
+          console.log = (...args) => logToConsole('log', ...args);
+          console.error = (...args) => logToConsole('error', ...args);
+          console.warn = (...args) => logToConsole('warn', ...args);
+          console.info = (...args) => logToConsole('info', ...args);
+          
+          // Handle uncaught errors
+          window.onerror = function(message, source, lineno, colno, error) {
+            const errorMessage = message + ' (line: ' + lineno + ', col: ' + colno + ')';
+            window.parent.postMessage({
+              type: 'console',
+              method: 'error',
+              data: [errorMessage]
+            }, '*');
+            return true; // Prevent default error handling
+          };
+          
+          // Handle unhandled promise rejections
+          window.onunhandledrejection = function(event) {
+            const errorMessage = 'Unhandled promise rejection: ' + event.reason;
+            window.parent.postMessage({
+              type: 'console',
+              method: 'error',
+              data: [errorMessage]
+            }, '*');
+          };
+          
+          // Execute the user's JavaScript
+          document.addEventListener('DOMContentLoaded', () => {
             try {
               ${DOMPurify.sanitize(jsContent)}
             } catch (error) {
-              console.error(error.message);
+              console.error('Error in JavaScript:', error);
             }
-          </script>
-        </body>
-      </html>
-    `;
+          });
+        </script>
+      </body>
+      </html>`;
   };
   
   // Handle editor content changes
@@ -294,8 +446,13 @@ echo "Hello, LiveCode!";
   useEffect(() => {
     const handleMessage = (event) => {
       if (event.data && event.data.type === 'console') {
-        const { method, args } = event.data;
-        setConsoleLogs(prev => [...prev, { type: method, data: args }]);
+        const { method, data } = event.data;
+        // Ensure we're working with an array of messages
+        const messages = Array.isArray(data) ? data : [data];
+        setConsoleLogs(prev => [...prev, { 
+          type: method, 
+          data: messages.join(' ') 
+        }]);
       }
     };
 
@@ -359,34 +516,124 @@ echo "Hello, LiveCode!";
       setHtml(template.html);
       setCss(template.css);
       setJs(template.js);
+      // If template defines libraries, apply them to the library picker
+      if (template.libraries) {
+        setSelectedLibraries(template.libraries);
+      }
+      // If template defines preferred languages/tabs, apply them
+      if (template.languages) {
+        setSelectedLanguages(template.languages);
+      }
       setIsTemplateOpen(false);
     }
   };
 
   // Export as ZIP
   const exportAsZip = async () => {
-    // Using JSZip library which should be added to dependencies
-    const JSZip = (await import('jszip')).default;
-    const zip = new JSZip();
-
-    zip.file('index.html', `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LiveCode Export</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-${html}
-  <script src="script.js"></script>
-</body>
-</html>`);
+    // Using JSZip
+    const createSrcDoc = (customHtml = null, customCss = null, customJs = null) => {
+      // ...
+      const htmlContent = customHtml || html;
+      const cssContent = customCss || css;
+      const jsContent = customJs || js;
+      
+      return `<!DOCTYPE html>
+      <html lang="en" class="${isDarkMode ? 'dark' : ''}">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LiveCode Preview</title>
+        <style>
+          :root {
+            --bg-color: ${isDarkMode ? '#1a202c' : '#ffffff'};
+            --text-color: ${isDarkMode ? '#f7fafc' : '#1a202c'};
+            --border-color: ${isDarkMode ? '#4a5568' : '#e2e8f0'};
+          }
+          
+          body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            margin: 0;
+            padding: 1rem;
+            min-height: 100vh;
+          }
+          
+          ${cssContent}
+          
+          /* Console styles */
+          #console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background-color: ${isDarkMode ? '#2d3748' : '#f7fafc'};
+            border-top: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 0.5rem;
+            font-family: monospace;
+            font-size: 14px;
+          }
+          
+          .console-log { color: ${isDarkMode ? '#a0aec0' : '#4a5568'}; }
+          .console-error { color: #f56565; }
+          .console-warn { color: #ecc94b; }
+          .console-info { color: #63b3ed; }
+        </style>
+      </head>
+      <body class="${isDarkMode ? 'dark' : ''}">
+        ${htmlContent}
+        <script>
+          // Override console methods to display in the console div
+          const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+          };
+          
+          const consoleDiv = document.createElement('div');
+          consoleDiv.id = 'console';
+          document.body.appendChild(consoleDiv);
+          
+          function logToConsole(type, ...args) {
+            const message = args.map(arg => 
+              typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'console-' + type;
+            logEntry.textContent = message;
+            consoleDiv.appendChild(logEntry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            
+            // Call original console method
+            originalConsole[type].apply(console, args);
+          }
+          
+          console.log = (...args) => logToConsole('log', ...args);
+          console.error = (...args) => logToConsole('error', ...args);
+          console.warn = (...args) => logToConsole('warn', ...args);
+          console.info = (...args) => logToConsole('info', ...args);
+          
+          // Handle uncaught errors
+          window.onerror = function(message, source, lineno, colno, error) {
+            logToConsole('error', message);
+            return false;
+          };
+          
+          // Handle unhandled promise rejections
+          window.onunhandledrejection = function(event) {
+            logToConsole('error', event.reason);
+          };
+          
+          ${jsContent}
+        </script>
+      </body>
+      </html>`;
+    };
     
-    zip.file('style.css', css);
-    zip.file('script.js', js);
-
     const content = await zip.generateAsync({ type: 'blob' });
     saveAs(content, 'livecode-export.zip');
   };
@@ -597,31 +844,11 @@ echo "Hello, LiveCode!";
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
+    // Save preference
     localStorage.setItem('livecode-theme', newMode ? 'dark' : 'light');
-  
-  // Update editor theme
-  setEditorSettings(prev => ({
-    ...prev,
-    theme: newMode ? 'vs-dark' : 'vs-light'
-  }));
-  
-  // Update document class for Tailwind dark mode
-  if (newMode) {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
-};
+    // Theme will be applied via the useEffect hook
+  };
 
-  // Set initial dark mode class
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
-  
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -679,7 +906,7 @@ echo "Hello, LiveCode!";
   }, [isConsoleOpen, saveSnippet, setActiveTab, setIsConsoleOpen, toggleDarkMode]); // Add other dependencies as needed
 
 return (
-  <div className={`app-container ${isDarkMode ? 'dark' : ''}`}>
+  <div className="app-container">
     {/* Top Navigation Bar */}
     <Navbar 
       isDarkMode={isDarkMode} 
@@ -941,40 +1168,136 @@ return (
           </div>
           
           {/* Right Side - Preview and Console */}
-          <div className="preview-section">
+          <div className="preview-section" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <Split
-              className="preview-console-split"
               sizes={isConsoleOpen ? [70, 30] : [100, 0]}
               minSize={isConsoleOpen ? 100 : 0}
               gutterSize={isConsoleOpen ? 8 : 0}
-              snapOffset={30}
               direction="vertical"
+              style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
             >
               {/* Preview Area */}
-              <div className="preview-container">
-                <div className="preview-header">
-                  <span>Preview</span>
-                  <div className="preview-controls">
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                flex: 1, 
+                minHeight: 0,
+                position: 'relative',
+                backgroundColor: 'var(--bg-primary)'
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  padding: '0.5rem 1rem',
+                  borderBottom: '1px solid var(--border-color)',
+                  backgroundColor: 'var(--bg-secondary)',
+                  zIndex: 2,
+                  position: 'relative'
+                }}>
+                  <span style={{ fontWeight: 500 }}>Preview</span>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <PreviewModes onModeChange={setPreviewMode} currentMode={previewMode} />
                     <button 
                       onClick={() => setIsLibraryPickerOpen(true)}
-                      className="preview-control-btn"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '28px',
+                        height: '28px',
+                        ':hover': {
+                          backgroundColor: 'var(--hover-bg)'
+                        }
+                      }}
                       title="Add Libraries"
                     >
                       <i className="fa fa-book"></i>
                     </button>
                     <button 
                       onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-                      className="console-toggle-btn"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: isConsoleOpen ? 'var(--primary-color)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '28px',
+                        height: '28px',
+                        ':hover': {
+                          backgroundColor: 'var(--hover-bg)'
+                        }
+                      }}
                       title={isConsoleOpen ? "Hide Console" : "Show Console"}
                     >
-                      <i className={`fa fa-terminal ${isConsoleOpen ? 'console-active' : ''}`}></i>
+                      <i className="fa fa-terminal"></i>
                     </button>
                   </div>
                 </div>
-                <div className="preview-content" style={{ width: previewMode.width, height: previewMode.height, maxWidth: '100%', maxHeight: '100%' }}>
-                  <Preview srcDoc={createSrcDoc(debouncedHtml, debouncedCss, debouncedJs)} ref={iframeRef} />
-                  <PerformanceMonitor iframeRef={iframeRef} />
+                <div style={{ 
+                  position: 'absolute',
+                  top: '41px', // Height of header
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex', 
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  overflow: 'auto',
+                  padding: previewMode.name === 'Desktop' ? 0 : '1rem',
+                  backgroundColor: 'var(--bg-primary)'
+                }}>
+                  <div style={{
+                    ...previewContainerStyle,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    backgroundColor: previewMode.name === 'Desktop' ? 'transparent' : 'var(--bg-secondary)',
+                    transition: 'all 0.3s ease',
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    boxSizing: 'border-box'
+                  }}>
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                      borderRadius: previewMode.name !== 'Desktop' ? '0 0 8px 8px' : 0
+                    }}>
+                      <Preview 
+                        srcDoc={createSrcDoc(debouncedHtml, debouncedCss, debouncedJs)} 
+                        ref={iframeRef} 
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          border: 'none',
+                          display: 'block'
+                        }}
+                      />
+                    </div>
+                    {previewMode.name !== 'Desktop' && (
+                      <div style={{
+                        padding: '0.5rem',
+                        textAlign: 'center',
+                        fontSize: '0.75rem',
+                        color: 'var(--text-secondary)',
+                        borderTop: '1px solid var(--border-color)',
+                        backgroundColor: 'var(--bg-secondary)',
+                        borderRadius: '0 0 8px 8px'
+                      }}>
+                        {previewMode.width} × {previewMode.height}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -1002,58 +1325,104 @@ return (
     </div>
 
     {/* Footer with Version History */}
-    <footer className="app-footer">
-      {/* Version History Timeline */}
-      <div className="version-history-container">
-        <div className="version-history-header">
-          <h3>Version History</h3>
-          {versionHistory.length > 0 && (
+    <footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-30">
+      <div className="max-w-7xl mx-auto px-4 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
             <button 
-              className="clear-history-btn"
-              onClick={() => {
-                if (confirm('Clear all version history? This cannot be undone.')) {
-                  localStorage.removeItem('versionHistory');
-                  setVersionHistory([]);
-                }
-              }}
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30"
+              title="Settings"
+              aria-label="Settings"
             >
-              Clear History
+              <i className="fas fa-cog text-lg"></i>
             </button>
-          )}
-        </div>
-        <div className="version-history-timeline">
-          {versionHistory.length > 0 ? (
-            versionHistory.map((version, index) => (
-              <div 
-                key={index} 
-                className={`version-item ${currentVersionIndex === index ? 'active-version' : ''}`}
-                onClick={() => loadVersion(index)}
-                title={`Version ${index + 1} - ${new Date(version.timestamp).toLocaleString()}`}
-              >
-                <div className="version-dot"></div>
-                <div className="version-info">
-                  <span className="version-number">V{index + 1}</span>
-                  <span className="version-time">{new Date(version.timestamp).toLocaleTimeString()}</span>
-                </div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              v1.0.0
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            {versionHistory.length > 0 && (
+              <div className="flex items-center space-x-1">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {versionHistory.length} {versionHistory.length === 1 ? 'version' : 'versions'}
+                </span>
+                <button 
+                  onClick={() => {
+                    if (confirm('Clear all version history?')) {
+                      localStorage.removeItem('versionHistory');
+                      setVersionHistory([]);
+                      setCurrentVersionIndex(-1);
+                    }
+                  }}
+                  className="p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                  title="Clear history"
+                >
+                  <i className="fas fa-trash-alt text-xs"></i>
+                </button>
               </div>
-            ))
-          ) : (
-            <div className="empty-history">No version history yet. Make changes to create versions.</div>
-          )}
-        </div>
-      </div>
-      
-      {/* Footer Info */}
-      <div className="footer-content">
-        <div className="footer-logo">
-          <i className="fas fa-code"></i> LiveCode
-        </div>
-        <div className="footer-links">
-          <button onClick={() => setIsSettingsOpen(true)}>
-            <i className="fas fa-cog"></i> Settings
-          </button>
-          <span className="footer-divider">|</span>
-          <span className="version">v1.0.0</span>
+            )}
+            
+            <div className="relative group">
+              <button 
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center space-x-1"
+                onClick={() => setShowVersionHistory(!showVersionHistory)}
+              >
+                <i className="fas fa-history"></i>
+                <span>Versions</span>
+                <i className={`fas fa-chevron-${showVersionHistory ? 'up' : 'down'} text-xs`}></i>
+              </button>
+              
+              {showVersionHistory && (
+                <div className="absolute bottom-full right-0 mb-2 w-64 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="max-h-60 overflow-y-auto">
+                    {versionHistory.length > 0 ? (
+                      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {versionHistory.map((version, index) => {
+                          const isActive = currentVersionIndex === index;
+                          const date = new Date(version.timestamp);
+                          const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          const dateString = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                          
+                          return (
+                            <div 
+                              key={index}
+                              className={`p-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                                isActive ? 'bg-blue-50 dark:bg-blue-900/30' : ''
+                              }`}
+                              onClick={() => {
+                                loadVersion(index);
+                                setShowVersionHistory(false);
+                              }}
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium">Version {versionHistory.length - index}</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {dateString} {timeString}
+                                </span>
+                              </div>
+                              {isActive && (
+                                <span className="inline-block mt-1 px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded">
+                                  Current
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                        <i className="fas fa-history text-2xl mb-2 text-gray-300 dark:text-gray-600"></i>
+                        <p>No versions yet</p>
+                        <p className="text-xs mt-1">Save changes to create versions</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </footer>
@@ -1163,5 +1532,5 @@ return (
       </div>
     )}
   </div>
-);
+  );
 }

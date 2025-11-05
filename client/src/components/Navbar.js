@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 
 export function Navbar({ 
-  onSettingsClick, 
   onTemplateClick, 
   onExport,
   onSave,
   onReset,
   isDarkMode,
-  onToggleDarkMode,
-  toggleTheme,
   onMinify,
   onExportScreenshot,
   onExportPDF,
@@ -20,7 +17,6 @@ export function Navbar({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLibraries, setShowLibraries] = useState(false);
   const [showLanguages, setShowLanguages] = useState(false);
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -42,7 +38,6 @@ export function Navbar({
       if (!containerRef.current.contains(e.target)) {
         setShowLibraries(false);
         setShowLanguages(false);
-        setShowThemeMenu(false);
       }
     };
 
@@ -141,27 +136,7 @@ export function Navbar({
           </div>
         </div>
         
-        {/* Settings buttons */}
-        <div className="button-group settings-actions">
-          <div style={{ position: 'relative' }}>
-            <button onClick={() => { setShowThemeMenu(!showThemeMenu); setShowLanguages(false); setShowLibraries(false); }} className="navbar-button">
-              <i className={`fa fa-${isDarkMode ? 'sun' : 'moon'}`}></i>
-              {(!isMobile || isMenuOpen) && (isDarkMode ? 'Light' : 'Dark')}
-            </button>
-            {showThemeMenu && (
-              <div className="nav-dropdown nav-dropdown-right">
-                <button className="nav-dropdown-item" onClick={() => { setShowThemeMenu(false); if (!isDarkMode) toggleTheme(); }}>Light</button>
-                <button className="nav-dropdown-item" onClick={() => { setShowThemeMenu(false); if (isDarkMode) toggleTheme(); }}>Dark</button>
-                <button className="nav-dropdown-item" onClick={() => { setShowThemeMenu(false); alert('More themes coming soon'); }}>More themes...</button>
-              </div>
-            )}
-          </div>
-
-          <button onClick={onSettingsClick} className="navbar-button">
-            <i className="fa fa-cog"></i>
-            {(!isMobile || isMenuOpen) && 'Settings'}
-          </button>
-        </div>
+        {/* Settings button has been moved to footer */}
       </div>
     </nav>
   );

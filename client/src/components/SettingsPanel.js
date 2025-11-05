@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "../styles/settings-panel.css";
 
 export function SettingsPanel({ settings, onSave, onClose, keyboardShortcuts = [] }) {
   const [activeTab, setActiveTab] = useState('appearance');
@@ -45,13 +46,28 @@ export function SettingsPanel({ settings, onSave, onClose, keyboardShortcuts = [
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
 
+  // Animation styles
+  const overlayAnimation = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: 0.2 }
+  };
+
+  const panelAnimation = {
+    initial: { y: -20, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    exit: { y: 20, opacity: 0 },
+    transition: { duration: 0.2, ease: 'easeOut' }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 modal-overlay backdrop-blur-sm">
-      <div className="settings-panel">
+    <div className="settings-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="settings-modal">
         {/* Header */}
         <div className="settings-header">
           <h2 className="settings-title">
-            <i className="fa fa-cog mr-2 text-blue-500"></i>
+            <i className="fas fa-cog mr-3 text-blue-500"></i>
             Editor Settings
           </h2>
           <button 
@@ -59,21 +75,24 @@ export function SettingsPanel({ settings, onSave, onClose, keyboardShortcuts = [
             className="settings-close"
             aria-label="Close"
           >
-            <i className="fa fa-times"></i>
+            <i className="fas fa-times"></i>
           </button>
         </div>
         
         {/* Tabs */}
         <div className="settings-tabs">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              className={`settings-tab ${activeTab === tab.id ? 'settings-tab-active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <i className={`fa ${tab.icon} mr-2`}></i> {tab.label}
-            </button>
-          ))}
+          <ul className="settings-tab-list">
+            {tabs.map(tab => (
+              <li 
+                key={tab.id}
+                className={`settings-tab ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <i className={`fas ${tab.icon}`}></i>
+                {tab.label}
+              </li>
+            ))}
+          </ul>
         </div>
         
         {/* Content */}

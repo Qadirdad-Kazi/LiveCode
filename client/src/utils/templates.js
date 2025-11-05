@@ -83,6 +83,122 @@ document.addEventListener('DOMContentLoaded', () => {
 });`
   },
   {
+    id: 'react-umd-starter',
+    name: 'React (UMD) Starter',
+    description: 'A minimal React starter using UMD builds (good for quick demos).',
+    tags: ['react', 'javascript', 'framework'],
+    languages: ['html', 'css', 'javascript'],
+    libraries: [
+      { name: 'React', cdn: 'https://unpkg.com/react@17/umd/react.development.js', type: 'script' },
+      { name: 'React DOM', cdn: 'https://unpkg.com/react-dom@17/umd/react-dom.development.js', type: 'script' }
+    ],
+    html: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React UMD Starter</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`,
+    css: `/* Simple centering */
+body { font-family: Arial, Helvetica, sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+#root { width:90%; max-width:720px; text-align:center; }`,
+    js: `// React (UMD) example
+const e = React.createElement;
+ReactDOM.render(
+  e('div', null, e('h1', null, 'Hello from React (UMD)!'), e('p', null, 'This is a quick demo.')),
+  document.getElementById('root')
+);`
+  },
+  {
+    id: 'vue3-starter',
+    name: 'Vue 3 Starter',
+    description: 'A small Vue 3 starter using the global build.',
+    tags: ['vue', 'javascript', 'framework'],
+    languages: ['html', 'css', 'javascript'],
+    libraries: [
+      { name: 'Vue 3', cdn: 'https://unpkg.com/vue@3/dist/vue.global.js', type: 'script' }
+    ],
+    html: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue 3 Starter</title>
+  </head>
+  <body>
+    <div id="app">
+      <h1>{{ message }}</h1>
+    </div>
+  </body>
+</html>`,
+    css: `body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding: 40px; }
+#app { text-align: center; }`,
+    js: `const { createApp } = Vue;
+createApp({
+  data() { return { message: 'Hello from Vue 3!' } }
+}).mount('#app');`
+  },
+  {
+    id: 'tailwind-starter',
+    name: 'Tailwind CDN Starter',
+    description: 'Start with Tailwind via the CDN (good for quick layouts).',
+    tags: ['tailwind', 'css', 'utility'],
+    languages: ['html', 'css'],
+    libraries: [
+      { name: 'Tailwind CDN', cdn: 'https://cdn.tailwindcss.com', type: 'script' }
+    ],
+    html: `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Tailwind Starter</title>
+  </head>
+  <body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center">
+      <div class="bg-white rounded-lg shadow p-8 max-w-xl w-full">
+        <h1 class="text-2xl font-bold mb-4">Tailwind CDN Starter</h1>
+        <p class="text-gray-600">This uses the Tailwind CDN for quick prototyping.</p>
+      </div>
+    </div>
+  </body>
+</html>`,
+    css: `/* Tailwind via CDN handles most styles; include small additions here */
+` ,
+    js: `// Tailwind loaded via CDN; add JS here if needed
+console.log('Tailwind demo loaded');`
+  },
+  {
+    id: 'jquery-quick',
+    name: 'jQuery Quick',
+    description: 'Simple jQuery example wired via CDN.',
+    tags: ['jquery', 'javascript'],
+    languages: ['html', 'css', 'javascript'],
+    libraries: [
+      { name: 'jQuery', cdn: 'https://code.jquery.com/jquery-3.7.1.min.js', type: 'script' }
+    ],
+    html: `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>jQuery Quick</title>
+  </head>
+  <body>
+    <div style="padding:40px; text-align:center;">
+      <button id="btn">Click me</button>
+      <div id="out" style="margin-top:20px;color:#333"></div>
+    </div>
+  </body>
+</html>`,
+    css: `button { padding: 10px 16px; border-radius: 6px; border: none; background:#2563eb; color:white; cursor:pointer; }`,
+    js: `$('#btn').on('click', function(){ $('#out').text('Button clicked via jQuery!'); });`
+  },
+  {
     id: 'responsive-layout',
     name: 'Responsive Flexbox Layout',
     description: 'A responsive layout using flexbox',
@@ -711,5 +827,202 @@ footer {
     }
   });
 });`
+  },
+  {
+    id: 'pyodide-python',
+    name: 'Python (Pyodide) Demo',
+    description: 'Run Python in the browser using Pyodide for quick Python experiments.',
+    tags: ['python', 'pyodide', 'wasm'],
+    languages: ['html', 'css', 'javascript'],
+    libraries: [
+      { name: 'Pyodide', cdn: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js', type: 'script' }
+    ],
+    html: `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Pyodide Python Demo</title>
+  </head>
+  <body style="font-family:Inter,system-ui,Arial,Helvetica,sans-serif;padding:24px;">
+    <h1>Pyodide: Python in the Browser</h1>
+    <textarea id="pycode" style="width:100%;height:120px">print('Hello from Pyodide!')\nfor i in range(3):\n    print(i)</textarea>
+    <div style="margin-top:12px;"><button id="run">Run Python</button></div>
+    <pre id="output" style="background:#f5f5f5;padding:12px;border-radius:6px;margin-top:12px;white-space:pre-wrap"></pre>
+  </body>
+</html>`,
+    css: `button { padding: 8px 12px; border-radius:6px; border: none; background:#0ea5e9; color:white; cursor:pointer }
+#output { min-height: 60px; }`,
+    js: `// Wait for pyodide to load
+async function main(){
+  const output = document.getElementById('output');
+  output.textContent = 'Loading Pyodide...';
+  const pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/' });
+  output.textContent = 'Pyodide ready. Click Run.';
+  document.getElementById('run').addEventListener('click', async () => {
+    output.textContent = '';
+    const code = document.getElementById('pycode').value;
+    try {
+      const result = await pyodide.runPythonAsync(code);
+      // When Python prints, it goes to stdout; capture by redirecting later if needed
+      output.textContent = result === undefined ? 'Executed (no return value)' : String(result);
+    } catch (err) {
+      output.textContent = 'Error: ' + err;
+    }
+  });
+}
+main();`
+  },
+  {
+    id: 'preact-starter',
+    name: 'Preact Starter (UMD)',
+    description: 'Small Preact example using the UMD build for tiny React-like demos.',
+    tags: ['preact', 'javascript', 'framework'],
+    languages: ['html', 'css', 'javascript'],
+    libraries: [
+      { name: 'Preact', cdn: 'https://unpkg.com/preact@10.13.2/dist/preact.umd.js', type: 'script' }
+    ],
+    html: `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Preact Starter</title>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>`,
+    css: `body { font-family: Inter, system-ui, Arial, sans-serif; padding:24px; }
+#app { max-width:720px; margin:0 auto; }`,
+    js: `const { h, render, Component } = preact;
+class App extends Component {
+  render() {
+    return h('div', null, h('h1', null, 'Hello from Preact!'), h('p', null, 'A minimal UMD-based example.'));
+  }
+}
+render(h(App, null), document.getElementById('app'));`
+  },
+  {
+    id: 'd3-visualization',
+    name: 'D3.js Visualization',
+    description: 'A small D3 bar chart demo.',
+    tags: ['d3', 'visualization', 'javascript'],
+    languages: ['html', 'css', 'javascript'],
+    libraries: [
+      { name: 'D3', cdn: 'https://d3js.org/d3.v7.min.js', type: 'script' }
+    ],
+    html: `<!doctype html>
+<html>
+  <body>
+    <h2 style="font-family:Inter,system-ui;padding:16px 24px">D3 Bar Chart</h2>
+    <div id="chart"></div>
+  </body>
+</html>`,
+    css: `#chart svg { width:100%; height:300px; display:block; }
+body { margin:0; }`,
+    js: `const data = [30, 86, 168, 281, 303, 365];
+const width = 600; const height = 300;
+const svg = d3.select('#chart').append('svg').attr('viewBox', '0 0 600 300');
+const x = d3.scaleBand().domain(d3.range(data.length)).range([0, width]).padding(0.1);
+const y = d3.scaleLinear().domain([0, d3.max(data)]).range([height, 0]);
+svg.selectAll('rect').data(data).enter().append('rect')
+  .attr('x', (d,i)=> x(i))
+  .attr('y', d=> y(d))
+  .attr('height', d=> height - y(d))
+  .attr('width', x.bandwidth())
+  .attr('fill', '#3b82f6');`
+  },
+  {
+    id: 'threejs-basic',
+    name: 'Three.js Basic',
+    description: 'Basic Three.js scene with a rotating cube.',
+    tags: ['threejs', '3d', 'webgl'],
+    languages: ['html', 'css', 'javascript'],
+    libraries: [
+      { name: 'Three.js', cdn: 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js', type: 'script' }
+    ],
+    html: `<!doctype html>
+<html>
+  <body style="margin:0;overflow:hidden">
+    <canvas id="c"></canvas>
+  </body>
+</html>`,
+    css: `canvas { display:block; width:100vw; height:100vh; }`,
+    js: `const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas });
+const fov = 75; const aspect = innerWidth/innerHeight; const near=0.1; const far=1000;
+const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+camera.position.z = 5;
+const scene = new THREE.Scene();
+const geometry = new THREE.BoxGeometry();
+const material = new THREE.MeshNormalMaterial();
+const cube = new THREE.Mesh(geometry, material);
+scene.add(cube);
+function onResize(){ renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); }
+onResize(); window.addEventListener('resize', onResize);
+function animate(){ requestAnimationFrame(animate); cube.rotation.x += 0.01; cube.rotation.y += 0.01; renderer.render(scene, camera); }
+animate();`
+  },
+  {
+    id: 'chartjs-line',
+    name: 'Chart.js Line Chart',
+    description: 'Simple Chart.js line chart example.',
+    tags: ['chartjs', 'charts', 'visualization'],
+    languages: ['html', 'css', 'javascript'],
+    libraries: [
+      { name: 'Chart.js', cdn: 'https://cdn.jsdelivr.net/npm/chart.js', type: 'script' }
+    ],
+    html: `<!doctype html>
+<html>
+  <body style="font-family:Inter,system-ui;padding:24px">
+    <canvas id="myChart"></canvas>
+  </body>
+</html>`,
+    css: `canvas { max-width:720px; }`,
+    js: `const ctx = document.getElementById('myChart').getContext('2d');
+new Chart(ctx, { type: 'line', data: { labels: ['Jan','Feb','Mar','Apr','May','Jun'], datasets: [{ label: 'Sales', data: [12,19,3,5,2,3], borderColor:'#ef4444', tension:0.3 }] }, options: {} });`
+  },
+  {
+    id: 'lodash-utilities',
+    name: 'Lodash Utilities',
+    description: 'Examples using Lodash utilities loaded from CDN.',
+    tags: ['lodash', 'utilities', 'javascript'],
+    languages: ['html', 'javascript'],
+    libraries: [
+      { name: 'Lodash', cdn: 'https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js', type: 'script' }
+    ],
+    html: `<!doctype html>
+<html>
+  <body style="font-family:Inter,system-ui;padding:24px">
+    <pre id="out"></pre>
+  </body>
+</html>`,
+    css: `pre { background:#f8fafc;padding:12px;border-radius:6px; }`,
+    js: `const arr = [1,2,3,4,5,6,7,8];
+const chunked = _.chunk(arr, 3);
+document.getElementById('out').textContent = 'Chunked: ' + JSON.stringify(chunked, null, 2);`
+  },
+  {
+    id: 'bootstrap-starter',
+    name: 'Bootstrap 5 Starter',
+    description: 'A quick Bootstrap 5 page (CSS + JS) via CDN.',
+    tags: ['bootstrap', 'css', 'framework'],
+    languages: ['html', 'css'],
+    libraries: [
+      { name: 'Bootstrap CSS', cdn: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css', type: 'css' },
+      { name: 'Bootstrap JS', cdn: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js', type: 'script' }
+    ],
+    html: `<!doctype html>
+<html>
+  <body class="p-4">
+    <div class="container">
+      <div class="alert alert-primary" role="alert">Bootstrap CDN starter</div>
+      <button class="btn btn-primary">Primary Button</button>
+    </div>
+  </body>
+</html>`,
+    css: `/* Bootstrap provides the styles; add minimal custom rules here */`,
+    js: `// Bootstrap JS via CDN; add custom JS here if needed` 
   }
 ];
