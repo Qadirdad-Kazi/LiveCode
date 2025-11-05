@@ -894,11 +894,7 @@ echo "Hello, LiveCode!";
         setIsConsoleOpen(!isConsoleOpen);
       }
       
-      // Ctrl/Cmd + D: Toggle dark mode
-      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-        e.preventDefault();
-        toggleDarkMode();
-      }
+      // (Removed) Ctrl/Cmd + D shortcut — theme is managed from Settings only
     };
     
     window.addEventListener('keydown', handleKeyDown);
@@ -1430,13 +1426,23 @@ return (
     {/* Settings Panel */}
     {isSettingsOpen && (
       <SettingsPanel 
-        settings={editorSettings}
-        onClose={() => setIsSettingsOpen(false)}
-        onSave={(newSettings) => {
-          setEditorSettings(newSettings);
-          localStorage.setItem('editorSettings', JSON.stringify(newSettings));
-          setIsSettingsOpen(false);
-        }}
+          settings={editorSettings}
+          onClose={() => setIsSettingsOpen(false)}
+          onSave={(newSettings) => {
+            setEditorSettings(newSettings);
+            localStorage.setItem('editorSettings', JSON.stringify(newSettings));
+            // If user changed the editor theme, also reflect that as the app theme
+            if (newSettings.theme === 'vs-dark') {
+              setIsDarkMode(true);
+              applyTheme(true, setEditorSettings);
+              localStorage.setItem('livecode-theme', 'dark');
+            } else if (newSettings.theme === 'vs-light') {
+              setIsDarkMode(false);
+              applyTheme(false, setEditorSettings);
+              localStorage.setItem('livecode-theme', 'light');
+            }
+            setIsSettingsOpen(false);
+          }}
         keyboardShortcuts={[
           { key: 'Ctrl/Cmd + S', description: 'Save snippet' },
           { key: 'Ctrl/Cmd + Enter', description: 'Run code / Refresh preview' },

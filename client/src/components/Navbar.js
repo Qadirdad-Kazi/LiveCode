@@ -110,7 +110,7 @@ export function Navbar({
           </button>
           
           <div className="nav-dropdown-wrapper" style={{ position: 'relative' }}>
-            <button onClick={() => { setShowLibraries(!showLibraries); setShowLanguages(false); setShowThemeMenu(false); }} className="navbar-button" title="Add Libraries">
+            <button onClick={() => { setShowLibraries(!showLibraries); setShowLanguages(false); }} className="navbar-button" title="Add Libraries">
               <i className="fa fa-book"></i> {(!isMobile || isMenuOpen) && 'Libraries'}
             </button>
             {showLibraries && (
@@ -122,7 +122,7 @@ export function Navbar({
           </div>
           
           <div className="nav-dropdown-wrapper" style={{ position: 'relative' }}>
-            <button onClick={() => { setShowLanguages(!showLanguages); setShowThemeMenu(false); setShowLibraries(false); }} className="navbar-button" title="Select Languages">
+            <button onClick={() => { setShowLanguages(!showLanguages); setShowLibraries(false); }} className="navbar-button" title="Select Languages">
               <i className="fa fa-language"></i> {(!isMobile || isMenuOpen) && 'Languages'}
             </button>
             {showLanguages && (
