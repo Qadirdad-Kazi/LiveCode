@@ -683,6 +683,31 @@
   font-size: 0.75rem;
 }
 
+/* Desktop: keep preview mode buttons on a single line and enable horizontal scroll if needed */
+@media (min-width: 768px) {
+  .preview-modes-grid {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem; /* give space for scrollbar */
+  }
+
+  .preview-mode-btn {
+    flex: 0 0 auto; /* don't shrink */
+    min-width: 72px;
+    max-width: 120px;
+    white-space: nowrap;
+  }
+
+  .preview-mode-btn span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.75rem;
+  }
+}
+
 .preview-mode-btn:hover {
   border-color: var(--primary);
   background: var(--primary-light);

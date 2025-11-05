@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 export function Navbar({ 
   onSettingsClick, 
@@ -18,6 +18,10 @@ export function Navbar({
 }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLibraries, setShowLibraries] = useState(false);
+  const [showLanguages, setShowLanguages] = useState(false);
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -29,6 +33,21 @@ export function Navbar({
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(e.target)) {
+        setShowLibraries(false);
+        setShowLanguages(false);
+        setShowThemeMenu(false);
+      }
+    };
+
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
   }, []);
 
   const toggleMenu = () => {
@@ -43,7 +62,7 @@ export function Navbar({
   };
 
   return (
-    <nav className={`navbar ${isDarkMode ? 'dark-theme' : 'light-theme'} ${isMenuOpen ? 'menu-open' : ''}`}>
+    <nav ref={containerRef} className={`navbar ${isDarkMode ? 'dark-theme' : 'light-theme'} ${isMenuOpen ? 'menu-open' : ''}`}>
       <div className="navbar-header">
         <div className="navbar-brand">
           <i className="fa fa-code mr-2"></i>
@@ -95,22 +114,49 @@ export function Navbar({
             <i className="fa fa-code"></i> {(!isMobile || isMenuOpen) && 'Snippets'}
           </button>
           
-          <button onClick={onLibraryPicker} className="navbar-button" title="Add Libraries">
-            <i className="fa fa-book"></i> {(!isMobile || isMenuOpen) && 'Libraries'}
-          </button>
+          <div className="nav-dropdown-wrapper" style={{ position: 'relative' }}>
+            <button onClick={() => { setShowLibraries(!showLibraries); setShowLanguages(false); setShowThemeMenu(false); }} className="navbar-button" title="Add Libraries">
+              <i className="fa fa-book"></i> {(!isMobile || isMenuOpen) && 'Libraries'}
+            </button>
+            {showLibraries && (
+              <div className="nav-dropdown nav-dropdown-right">
+                <button className="nav-dropdown-item" onClick={() => { setShowLibraries(false); if (onLibraryPicker) onLibraryPicker(); }}>Add Libraries</button>
+                <button className="nav-dropdown-item" onClick={() => { setShowLibraries(false); if (onSnippetLibrary) onSnippetLibrary(); }}>Open Snippets</button>
+              </div>
+            )}
+          </div>
           
-          <button onClick={onLanguageSelector} className="navbar-button" title="Select Languages">
-            <i className="fa fa-language"></i> {(!isMobile || isMenuOpen) && 'Languages'}
-          </button>
+          <div className="nav-dropdown-wrapper" style={{ position: 'relative' }}>
+            <button onClick={() => { setShowLanguages(!showLanguages); setShowThemeMenu(false); setShowLibraries(false); }} className="navbar-button" title="Select Languages">
+              <i className="fa fa-language"></i> {(!isMobile || isMenuOpen) && 'Languages'}
+            </button>
+            {showLanguages && (
+              <div className="nav-dropdown nav-dropdown-right">
+                <button className="nav-dropdown-item" onClick={() => { setShowLanguages(false); if (onLanguageSelector) onLanguageSelector('javascript'); }}>JavaScript</button>
+                <button className="nav-dropdown-item" onClick={() => { setShowLanguages(false); if (onLanguageSelector) onLanguageSelector('html'); }}>HTML</button>
+                <button className="nav-dropdown-item" onClick={() => { setShowLanguages(false); if (onLanguageSelector) onLanguageSelector('css'); }}>CSS</button>
+                <button className="nav-dropdown-item" onClick={() => { setShowLanguages(false); if (onLanguageSelector) onLanguageSelector('python'); }}>Python</button>
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Settings buttons */}
         <div className="button-group settings-actions">
-          <button onClick={toggleTheme} className="navbar-button">
-            <i className={`fa fa-${isDarkMode ? 'sun' : 'moon'}`}></i>
-            {(!isMobile || isMenuOpen) && (isDarkMode ? 'Light' : 'Dark')}
-          </button>
-          
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => { setShowThemeMenu(!showThemeMenu); setShowLanguages(false); setShowLibraries(false); }} className="navbar-button">
+              <i className={`fa fa-${isDarkMode ? 'sun' : 'moon'}`}></i>
+              {(!isMobile || isMenuOpen) && (isDarkMode ? 'Light' : 'Dark')}
+            </button>
+            {showThemeMenu && (
+              <div className="nav-dropdown nav-dropdown-right">
+                <button className="nav-dropdown-item" onClick={() => { setShowThemeMenu(false); if (!isDarkMode) toggleTheme(); }}>Light</button>
+                <button className="nav-dropdown-item" onClick={() => { setShowThemeMenu(false); if (isDarkMode) toggleTheme(); }}>Dark</button>
+                <button className="nav-dropdown-item" onClick={() => { setShowThemeMenu(false); alert('More themes coming soon'); }}>More themes...</button>
+              </div>
+            )}
+          </div>
+
           <button onClick={onSettingsClick} className="navbar-button">
             <i className="fa fa-cog"></i>
             {(!isMobile || isMenuOpen) && 'Settings'}
